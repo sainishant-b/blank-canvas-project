@@ -79,11 +79,10 @@ serve(async (req) => {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (profileError) {
       console.error('Error fetching profile:', profileError);
-      throw profileError;
     }
 
     // Fetch recent check-ins for energy/mood patterns
