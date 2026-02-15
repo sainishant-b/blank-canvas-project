@@ -1,9 +1,9 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -12,158 +12,123 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const { taskTitle, taskDescription, taskCategory, taskPriority, conversationHistory } = await req.json();
 
-    if (!taskTitle?.trim()) {
+    if (!taskTitle) {
       return new Response(
         JSON.stringify({ error: "Task title is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const systemPrompt = `You are a smart productivity assistant that helps users break down tasks into actionable subtasks and plan timelines.
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
 
-RULES:
-1. When the user provides a task, suggest 3-6 practical, actionable subtasks.
-2. For each subtask, estimate a realistic duration in minutes.
-3. Suggest an overall timeline with a recommended order for completing subtasks.
-4. Be conversational and helpful. If the user asks follow-up questions or wants changes, adapt.
-5. Keep subtask titles concise (under 60 characters).
-6. Consider the task's category and priority when making suggestions.
-7. If a task is vague, ask clarifying questions before suggesting subtasks.
-8. Also suggest a short, helpful description for the main task if the user hasn't provided one.
+    const systemPrompt = `You are a productivity assistant that helps break down tasks into actionable subtasks. Given a task, provide:
+1. A brief helpful message to the user
+2. 3-6 actionable subtasks with estimated durations in minutes
+3. A suggested description if the user hasn't provided one
+4. A timeline summary explaining the workflow
+5. Total estimated time in minutes
 
-RESPONSE FORMAT:
-Always respond using the suggest_task_breakdown tool. Include:
-- subtasks: array of suggested subtasks with title, estimated_duration (minutes), and order
-- suggested_description: a helpful description for the main task (only if user hasn't provided one)
-- timeline_summary: a brief text summary of the recommended timeline
-- estimated_total_minutes: total estimated time for all subtasks
-- message: your conversational response to the user
-- needs_clarification: true if you need more info before giving good suggestions`;
+Use the provided tool to return structured data. Keep subtask titles concise (under 80 chars). Be practical and specific.`;
 
-    const messages = [
+    const messages: { role: string; content: string }[] = [
       { role: "system", content: systemPrompt },
     ];
 
-    // Add conversation history if provided
     if (conversationHistory && conversationHistory.length > 0) {
-      for (const msg of conversationHistory) {
-        messages.push({ role: msg.role, content: msg.content });
-      }
+      messages.push(...conversationHistory);
     } else {
-      // Initial request
-      let userMessage = `Help me break down this task into subtasks and suggest a timeline:\n\nTask: "${taskTitle}"`;
-      if (taskDescription) {
-        userMessage += `\nDescription: "${taskDescription}"`;
-      }
-      if (taskCategory) {
-        userMessage += `\nCategory: ${taskCategory}`;
-      }
-      if (taskPriority) {
-        userMessage += `\nPriority: ${taskPriority}`;
-      }
-      messages.push({ role: "user", content: userMessage });
+      const userPrompt = `Task: "${taskTitle}"${taskDescription ? `\nDescription: ${taskDescription}` : ""}${taskCategory ? `\nCategory: ${taskCategory}` : ""}${taskPriority ? `\nPriority: ${taskPriority}` : ""}
+
+Please suggest subtasks, a timeline, and a description for this task.`;
+      messages.push({ role: "user", content: userPrompt });
     }
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-preview",
+        model: "google/gemini-3-flash-preview",
         messages,
         tools: [
           {
             type: "function",
             function: {
-              name: "suggest_task_breakdown",
-              description: "Suggest subtasks and timeline for a task",
+              name: "suggest_task_plan",
+              description: "Return a structured task plan with subtasks, description, and timeline.",
               parameters: {
                 type: "object",
                 properties: {
+                  message: { type: "string", description: "A brief helpful message to the user about the plan" },
                   subtasks: {
                     type: "array",
-                    description: "Suggested subtasks in recommended order",
                     items: {
                       type: "object",
                       properties: {
-                        title: { type: "string", description: "Subtask title (concise, actionable)" },
-                        estimated_duration: { type: "number", description: "Estimated minutes to complete" },
-                        order: { type: "number", description: "Recommended order (1-based)" },
+                        title: { type: "string", description: "Short actionable subtask title" },
+                        estimated_duration: { type: "number", description: "Estimated duration in minutes" },
+                        order: { type: "number", description: "Order of the subtask (1-based)" },
                       },
                       required: ["title", "estimated_duration", "order"],
+                      additionalProperties: false,
                     },
                   },
-                  suggested_description: {
-                    type: "string",
-                    description: "A helpful description for the main task (skip if user already has one)",
-                  },
-                  timeline_summary: {
-                    type: "string",
-                    description: "Brief timeline recommendation (e.g., 'Complete over 2 days, starting with research')",
-                  },
-                  estimated_total_minutes: {
-                    type: "number",
-                    description: "Total estimated minutes for all subtasks",
-                  },
-                  message: {
-                    type: "string",
-                    description: "Your conversational response to the user",
-                  },
-                  needs_clarification: {
-                    type: "boolean",
-                    description: "True if you need more information before making good suggestions",
-                  },
+                  suggested_description: { type: "string", description: "A suggested task description if not provided" },
+                  timeline_summary: { type: "string", description: "Brief summary of the workflow and timeline" },
+                  estimated_total_minutes: { type: "number", description: "Total estimated time in minutes" },
+                  needs_clarification: { type: "boolean", description: "Whether more info is needed from the user" },
                 },
-                required: ["message"],
+                required: ["message", "subtasks", "timeline_summary", "estimated_total_minutes"],
+                additionalProperties: false,
               },
             },
           },
         ],
-        tool_choice: { type: "function", function: { name: "suggest_task_breakdown" } },
+        tool_choice: { type: "function", function: { name: "suggest_task_plan" } },
       }),
     });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error("AI API error:", aiResponse.status, errorText);
-
-      if (aiResponse.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      throw new Error(`AI API error: ${aiResponse.status}`);
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI usage limit reached. Please add credits." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const text = await response.text();
+      console.error("AI gateway error:", response.status, text);
+      throw new Error(`AI API error: ${response.status}`);
     }
 
-    const aiData = await aiResponse.json();
-    const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+    const aiData = await response.json();
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
-    if (!toolCall || toolCall.function.name !== "suggest_task_breakdown") {
-      throw new Error("AI did not provide task breakdown");
+    if (!toolCall) {
+      throw new Error("No tool call returned from AI");
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log("AI task breakdown:", JSON.stringify(result));
 
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("ai-task-assistant error:", e);
     return new Response(
-      JSON.stringify(result),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: any) {
-    console.error("Error in ai-task-assistant:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

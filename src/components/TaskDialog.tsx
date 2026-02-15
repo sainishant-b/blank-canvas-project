@@ -18,12 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Minus, Plus, X, ChevronDown, Bell, Repeat, Camera, Sparkles } from "lucide-react";
+import { Minus, Plus, X, ChevronDown, Bell, Repeat, Camera, Sparkles, Loader2, Check } from "lucide-react";
 import { NotificationSchedulePreview } from "./NotificationSchedulePreview";
 import { useBackButton } from "@/hooks/useBackButton";
 import { RepeatConfigSheet, RepeatConfig } from "./RepeatConfigSheet";
 import { formatRepeatDescription } from "@/utils/repeatTaskUtils";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 import AITaskAssistant from "./AITaskAssistant";
 
 interface Task {
@@ -63,6 +66,8 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
   // Handle Android back button
   useBackButton(open, onClose);
 
+  const { toast } = useToast();
+
   const [formData, setFormData] = useState<Partial<Task>>({
     title: "",
     description: "",
@@ -75,6 +80,9 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
   });
   const [showNotificationPreview, setShowNotificationPreview] = useState(false);
   const [showRepeatConfig, setShowRepeatConfig] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [suggestedSubtasks, setSuggestedSubtasks] = useState<{ title: string; selected: boolean }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [pendingSubtasks, setPendingSubtasks] = useState<PendingSubtask[]>([]);
 
