@@ -24,7 +24,8 @@ import {
   Calendar,
   Tag,
   Camera,
-  Star
+  Star,
+  Trash2
 } from "lucide-react";
 import CheckInModal from "@/components/CheckInModal";
 import SubtaskList from "@/components/SubtaskList";
@@ -387,6 +388,17 @@ const TaskWorkspace = () => {
     navigate("/");
   };
 
+  const deleteTask = async () => {
+    if (!taskId) return;
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+    if (error) {
+      toast.error("Failed to delete task");
+      return;
+    }
+    toast.success("Task deleted");
+    navigate("/");
+  };
+
   const priorityColors = {
     high: "bg-destructive/10 text-destructive border-destructive/20",
     medium: "bg-warning/10 text-warning border-warning/20",
@@ -417,10 +429,15 @@ const TaskWorkspace = () => {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <Button onClick={completeTask} variant="outline" size="sm" className="rounded-xl">
-                <CheckCircle2 className="h-4 w-4 mr-2" />
-                Complete
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button onClick={deleteTask} variant="ghost" size="sm" className="rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button onClick={completeTask} variant="outline" size="sm" className="rounded-xl">
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Complete
+                </Button>
+              </div>
             </div>
 
             {/* Work Session Button - MOVED TO TOP */}
