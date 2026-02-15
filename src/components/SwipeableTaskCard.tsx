@@ -190,6 +190,17 @@ const SwipeableTaskCard = ({
           {task.priority}
         </Badge>
       </div>
+
+      {/* Delete button - desktop only */}
+      {onDelete && !inverted && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+          className="shrink-0 p-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+          title="Delete task"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 
