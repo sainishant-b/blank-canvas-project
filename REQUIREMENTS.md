@@ -6,7 +6,7 @@
 **Hackathon:** AI for Bharat  
 **Category:** [Student Track] AI for Learning & Developer Productivity
 **Deployment:** AWS (S3 + CloudFront)  
-**Live URL:** http://ai-productivity-v3.s3-website.eu-north-1.amazonaws.com/
+**Live URL:** http://ai-productivity-v3.s3-website.eu-north-1.amazonaws.com
 **Repository:** https://github.com/sainishant-b/ai-productivity-v3
 
 ---
