@@ -335,7 +335,7 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
           </div>
 
           {/* AI Task Assistant Toggle */}
-          {!task && (
+          {(
             <div className="space-y-2">
               <Button
                 type="button"
