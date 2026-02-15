@@ -156,7 +156,8 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData, pendingSubtasks.length > 0 ? pendingSubtasks : undefined);
+    const subtasksToSave = pendingSubtasks.length > 0 ? [...pendingSubtasks] : undefined;
+    onSave(formData, subtasksToSave);
     setPendingSubtasks([]);
     setShowAIAssistant(false);
     onClose();

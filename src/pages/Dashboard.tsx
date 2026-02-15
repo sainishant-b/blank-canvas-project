@@ -156,8 +156,6 @@ const Dashboard = () => {
     setVerificationCount(proofCount);
   };
   const handleSaveTask = async (taskData: any, pendingSubtasks?: { title: string; estimated_duration: number }[]) => {
-    console.log("handleSaveTask called, pendingSubtasks:", pendingSubtasks);
-    
     if (selectedTask) {
       const { error } = await supabase.from("tasks").update(taskData).eq("id", selectedTask.id);
       if (error) {
