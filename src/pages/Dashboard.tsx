@@ -155,7 +155,7 @@ const Dashboard = () => {
     setVerificationAvg(proofAvg);
     setVerificationCount(proofCount);
   };
-  const handleSaveTask = async (taskData: any) => {
+  const handleSaveTask = async (taskData: any, pendingSubtasks?: { title: string; estimated_duration: number }[]) => {
     const isNewTask = !selectedTask;
     
     if (selectedTask) {
@@ -165,15 +165,32 @@ const Dashboard = () => {
       if (error) toast.error("Failed to update task");else toast.success("Task updated!");
     } else {
       const {
+        data: newTaskData,
         error
       } = await supabase.from("tasks").insert([{
         ...taskData,
         user_id: user.id
-      }]);
+      }]).select();
       if (error) toast.error("Failed to create task");else {
         toast.success("Task created!");
         // Invalidate recommendations when a new task is added
         invalidateRecommendations();
+
+        // Insert AI-suggested subtasks if any
+        if (pendingSubtasks && pendingSubtasks.length > 0 && newTaskData?.[0]?.id) {
+          const subtaskRows = pendingSubtasks.map((st) => ({
+            task_id: newTaskData[0].id,
+            user_id: user.id,
+            title: st.title,
+          }));
+          const { error: subtaskError } = await supabase.from("subtasks").insert(subtaskRows);
+          if (subtaskError) {
+            console.error("Failed to insert AI subtasks:", subtaskError);
+            toast.error("Task created but failed to add subtasks");
+          } else {
+            toast.success(`Added ${pendingSubtasks.length} AI subtask${pendingSubtasks.length > 1 ? "s" : ""}`);
+          }
+        }
       }
     }
     fetchTasks();

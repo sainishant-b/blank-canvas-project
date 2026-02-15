@@ -92,7 +92,7 @@ export default function CalendarView() {
     setIsTaskDialogOpen(true);
   };
 
-  const handleSaveTask = async (taskData: Partial<Task>) => {
+  const handleSaveTask = async (taskData: Partial<Task>, pendingSubtasks?: { title: string; estimated_duration: number }[]) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -103,9 +103,25 @@ export default function CalendarView() {
         due_date: selectedDate?.toISOString(),
       } as { priority: string; title: string; user_id: string; due_date?: string };
 
-      const { error } = await supabase.from("tasks").insert([newTask]);
+      const { data: insertedData, error } = await supabase.from("tasks").insert([newTask]).select();
 
       if (error) throw error;
+
+      // Insert AI-suggested subtasks if any
+      if (pendingSubtasks && pendingSubtasks.length > 0 && insertedData?.[0]?.id) {
+        const subtaskRows = pendingSubtasks.map((st) => ({
+          task_id: insertedData[0].id,
+          user_id: user.id,
+          title: st.title,
+        }));
+        const { error: subtaskError } = await supabase.from("subtasks").insert(subtaskRows);
+        if (subtaskError) {
+          console.error("Failed to insert AI subtasks:", subtaskError);
+          toast.error("Task created but failed to add subtasks");
+        } else {
+          toast.success(`Added ${pendingSubtasks.length} AI subtask${pendingSubtasks.length > 1 ? "s" : ""}`);
+        }
+      }
 
       toast.success("Task created successfully");
       fetchTasks();

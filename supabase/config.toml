@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.ai-calendar-schedule]
 verify_jwt = false
+
+[functions.ai-task-assistant]
+verify_jwt = false

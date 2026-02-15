@@ -18,12 +18,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Minus, Plus, X, ChevronDown, Bell, Repeat, Camera } from "lucide-react";
+import { Minus, Plus, X, ChevronDown, Bell, Repeat, Camera, Sparkles } from "lucide-react";
 import { NotificationSchedulePreview } from "./NotificationSchedulePreview";
 import { useBackButton } from "@/hooks/useBackButton";
 import { RepeatConfigSheet, RepeatConfig } from "./RepeatConfigSheet";
 import { formatRepeatDescription } from "@/utils/repeatTaskUtils";
 import { Switch } from "@/components/ui/switch";
+import AITaskAssistant from "./AITaskAssistant";
 
 interface Task {
   id?: string;
@@ -46,10 +47,15 @@ interface Task {
   requires_proof?: boolean;
 }
 
+interface PendingSubtask {
+  title: string;
+  estimated_duration: number;
+}
+
 interface TaskDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (task: Partial<Task>) => void;
+  onSave: (task: Partial<Task>, pendingSubtasks?: PendingSubtask[]) => void;
   task?: Task;
 }
 
@@ -69,6 +75,8 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
   });
   const [showNotificationPreview, setShowNotificationPreview] = useState(false);
   const [showRepeatConfig, setShowRepeatConfig] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [pendingSubtasks, setPendingSubtasks] = useState<PendingSubtask[]>([]);
 
   // Build a task object for the notification preview
   const previewTask = useMemo(() => ({
@@ -99,6 +107,9 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
         requires_proof: false,
       });
     }
+    // Reset AI assistant state when dialog opens/closes
+    setShowAIAssistant(false);
+    setPendingSubtasks([]);
   }, [task, open]);
 
   const handleRepeatSave = (config: RepeatConfig) => {
@@ -137,7 +148,9 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    onSave(formData, pendingSubtasks.length > 0 ? pendingSubtasks : undefined);
+    setPendingSubtasks([]);
+    setShowAIAssistant(false);
     onClose();
   };
 
@@ -312,6 +325,75 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
               </Button>
             )}
           </div>
+
+          {/* AI Task Assistant Toggle */}
+          {!task && (
+            <div className="space-y-2">
+              <Button
+                type="button"
+                variant={showAIAssistant ? "secondary" : "outline"}
+                className="w-full justify-start gap-2"
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                disabled={!formData.title?.trim()}
+              >
+                <Sparkles className="h-4 w-4 text-purple-400" />
+                {showAIAssistant ? "Hide AI Assistant" : "AI: Suggest subtasks & timeline"}
+                {pendingSubtasks.length > 0 && (
+                  <span className="ml-auto text-xs bg-purple-500/20 text-purple-400 rounded-full px-2 py-0.5">
+                    {pendingSubtasks.length} subtask{pendingSubtasks.length > 1 ? "s" : ""} ready
+                  </span>
+                )}
+              </Button>
+
+              {showAIAssistant && formData.title?.trim() && (
+                <AITaskAssistant
+                  taskTitle={formData.title}
+                  taskDescription={formData.description || ""}
+                  taskCategory={formData.category || "other"}
+                  taskPriority={formData.priority || "medium"}
+                  onApplySubtasks={(subtasks) => setPendingSubtasks(subtasks)}
+                  onApplyDescription={(desc) => setFormData({ ...formData, description: desc })}
+                  onApplyTimeline={(minutes) => {
+                    // Find nearest duration option
+                    const options = [15, 30, 60, 120, 240];
+                    const nearest = options.reduce((prev, curr) =>
+                      Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev
+                    , options[0]);
+                    setFormData({ ...formData, estimated_duration: nearest });
+                  }}
+                  onClose={() => setShowAIAssistant(false)}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Pending AI Subtasks Preview */}
+          {pendingSubtasks.length > 0 && !showAIAssistant && (
+            <div className="p-3 rounded-lg border bg-purple-500/5 border-purple-500/20 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3 text-purple-400" />
+                  {pendingSubtasks.length} AI subtask{pendingSubtasks.length > 1 ? "s" : ""} will be added
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => setPendingSubtasks([])}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="space-y-1">
+                {pendingSubtasks.map((st, idx) => (
+                  <p key={`pending-${st.title}`} className="text-xs text-muted-foreground">
+                    {idx + 1}. {st.title}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Requires Photo Proof */}
           <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
