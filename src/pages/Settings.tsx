@@ -247,11 +247,11 @@ const Settings = () => {
       console.log("Service Worker ready:", swReg);
       toast.info("Service Worker: Ready ✓");
       
-      const existingSub = await swReg.pushManager.getSubscription();
+      const existingSub = await (swReg as any).pushManager.getSubscription();
       console.log("Existing subscription:", existingSub);
       toast.info(existingSub ? "Existing subscription found" : "No existing subscription");
       
-      const permState = await swReg.pushManager.permissionState({ userVisibleOnly: true });
+      const permState = await (swReg as any).pushManager.permissionState({ userVisibleOnly: true });
       console.log("Push permission state:", permState);
       toast.info(`Push permission: ${permState}`);
       
@@ -269,7 +269,7 @@ const Settings = () => {
       const regs = await navigator.serviceWorker.getRegistrations();
       for (const reg of regs) {
         try {
-          const sub = await reg.pushManager.getSubscription();
+          const sub = await (reg as any).pushManager.getSubscription();
           if (sub) {
             await sub.unsubscribe();
             console.log("Unsubscribed from push");

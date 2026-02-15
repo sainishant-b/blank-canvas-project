@@ -156,13 +156,31 @@ const Dashboard = () => {
     setVerificationCount(proofCount);
   };
   const handleSaveTask = async (taskData: any, pendingSubtasks?: { title: string; estimated_duration: number }[]) => {
-    const isNewTask = !selectedTask;
+    console.log("handleSaveTask called, pendingSubtasks:", pendingSubtasks);
     
     if (selectedTask) {
-      const {
-        error
-      } = await supabase.from("tasks").update(taskData).eq("id", selectedTask.id);
-      if (error) toast.error("Failed to update task");else toast.success("Task updated!");
+      const { error } = await supabase.from("tasks").update(taskData).eq("id", selectedTask.id);
+      if (error) {
+        toast.error("Failed to update task");
+      } else {
+        toast.success("Task updated!");
+        
+        // Also insert AI-suggested subtasks when editing
+        if (pendingSubtasks && pendingSubtasks.length > 0) {
+          const subtaskRows = pendingSubtasks.map((st) => ({
+            task_id: selectedTask.id,
+            user_id: user.id,
+            title: st.title,
+          }));
+          const { error: subtaskError } = await supabase.from("subtasks").insert(subtaskRows);
+          if (subtaskError) {
+            console.error("Failed to insert AI subtasks:", subtaskError);
+            toast.error("Failed to add AI subtasks");
+          } else {
+            toast.success(`Added ${pendingSubtasks.length} AI subtask${pendingSubtasks.length > 1 ? "s" : ""}`);
+          }
+        }
+      }
     } else {
       const {
         data: newTaskData,
@@ -171,9 +189,10 @@ const Dashboard = () => {
         ...taskData,
         user_id: user.id
       }]).select();
-      if (error) toast.error("Failed to create task");else {
+      if (error) {
+        toast.error("Failed to create task");
+      } else {
         toast.success("Task created!");
-        // Invalidate recommendations when a new task is added
         invalidateRecommendations();
 
         // Insert AI-suggested subtasks if any

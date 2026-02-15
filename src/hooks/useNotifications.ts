@@ -171,14 +171,14 @@ export const useNotifications = (): UseNotificationsReturn => {
           swRegistrationRef.current = registration;
           console.log("Service Worker registered:", registration);
 
-          let subscription = await registration.pushManager.getSubscription();
+          let subscription = await (registration as any).pushManager.getSubscription();
           
           // If not found on our registration, check all registrations (browser may have subscription on different SW)
           if (!subscription) {
             const allRegs = await navigator.serviceWorker.getRegistrations();
             for (const reg of allRegs) {
               try {
-                const sub = await reg.pushManager.getSubscription();
+                const sub = await (reg as any).pushManager.getSubscription();
                 if (sub) {
                   subscription = sub;
                   console.log("Found subscription on different SW registration");
@@ -353,13 +353,13 @@ export const useNotifications = (): UseNotificationsReturn => {
       }
 
       // Check ALL SW registrations for existing subscription (not just ours - browser may have it on a different one)
-      let existingSubscription = await registration.pushManager.getSubscription();
+      let existingSubscription = await (registration as any).pushManager.getSubscription();
       
       if (!existingSubscription) {
         const allRegs = await navigator.serviceWorker.getRegistrations();
         for (const reg of allRegs) {
           try {
-            const sub = await reg.pushManager.getSubscription();
+            const sub = await (reg as any).pushManager.getSubscription();
             if (sub) {
               existingSubscription = sub;
               console.log("Found existing subscription on different SW registration");
@@ -399,7 +399,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       let activeRegistration = registration;
 
       const subscribeOnce = (reg: ServiceWorkerRegistration) =>
-        reg.pushManager.subscribe({
+        (reg as any).pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: validation.bytes,
         });
@@ -491,7 +491,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
             if (userId) {
               const reg = await navigator.serviceWorker.ready;
-              const sub = await reg.pushManager.getSubscription();
+              const sub = await (reg as any).pushManager.getSubscription();
               if (sub) {
                 const { error: saveError } = await supabase
                   .from("push_subscriptions")
@@ -574,7 +574,7 @@ export const useNotifications = (): UseNotificationsReturn => {
       // Fall back to the ready registration in case this hook instance mounted before registration finished.
       const registration = swRegistrationRef.current ?? (await navigator.serviceWorker.ready);
 
-      const subscription = await registration.pushManager.getSubscription();
+      const subscription = await (registration as any).pushManager.getSubscription();
       if (subscription) {
         await subscription.unsubscribe();
 
