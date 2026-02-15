@@ -4,10 +4,10 @@
 
 **Project Name:** AI Productivity Companion  
 **Hackathon:** AI for Bharat  
-**Category:** Productivity & AI-Powered Task Management  
+**Category:** [Student Track] AI for Learning & Developer Productivity
 **Deployment:** AWS (S3 + CloudFront)  
-**Live URL:** [Your AWS URL]  
-**Repository:** [Your GitHub URL]
+**Live URL:** http://ai-productivity-v3.s3-website.eu-north-1.amazonaws.com/
+**Repository:** https://github.com/sainishant-b/ai-productivity-v3
 
 ---
 
