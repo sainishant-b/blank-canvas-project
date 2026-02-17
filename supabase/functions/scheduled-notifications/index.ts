@@ -6,6 +6,33 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Get current hour in user's timezone
+function getCurrentHourInTimezone(timezone: string): number {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      hour12: false,
+    });
+    return parseInt(formatter.format(now), 10);
+  } catch {
+    // Fallback to UTC
+    return new Date().getUTCHours();
+  }
+}
+
+// Get today's date string in user's timezone
+function getTodayInTimezone(timezone: string): string {
+  try {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: timezone }); // en-CA gives YYYY-MM-DD
+    return formatter.format(now);
+  } catch {
+    return new Date().toISOString().split('T')[0];
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,16 +44,13 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    // Get current time
     const now = new Date();
-    const currentHour = now.getHours();
+    console.log(`Running scheduled notifications at ${now.toISOString()}`);
     
-    console.log(`Running scheduled notifications check at ${now.toISOString()}, hour: ${currentHour}`);
-    
-    // Get all users with their profiles and tasks
+    // Get all user profiles
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
-      .select('id, name, work_hours_start, work_hours_end, check_in_frequency');
+      .select('id, name, work_hours_start, work_hours_end, check_in_frequency, timezone');
     
     if (profileError) {
       console.error('Error fetching profiles:', profileError);
@@ -48,21 +72,23 @@ serve(async (req) => {
 
     for (const profile of profiles) {
       try {
-        // Check if current hour is within user's work hours
+        const userTimezone = profile.timezone || 'UTC';
+        const currentHour = getCurrentHourInTimezone(userTimezone);
+        const today = getTodayInTimezone(userTimezone);
+
         const workStart = parseInt(profile.work_hours_start?.split(':')[0] || '9');
         const workEnd = parseInt(profile.work_hours_end?.split(':')[0] || '17');
         
         const isWorkHours = currentHour >= workStart && currentHour < workEnd;
         
         if (!isWorkHours) {
-          console.log(`Skipping user ${profile.id} - outside work hours (${workStart}-${workEnd})`);
+          console.log(`Skipping user ${profile.id} - outside work hours (${workStart}-${workEnd}, tz: ${userTimezone}, hour: ${currentHour})`);
           continue;
         }
 
         usersProcessed++;
 
         // Check for overdue tasks
-        const today = now.toISOString().split('T')[0];
         const { data: overdueTasks, error: overdueError } = await supabase
           .from('tasks')
           .select('id, title, due_date, priority')
@@ -78,27 +104,30 @@ serve(async (req) => {
         }
 
         if (overdueTasks && overdueTasks.length > 0) {
-          // Send overdue notification via the send-push-notification function
-          const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
-            body: {
-              userId: profile.id,
-              title: `⚠️ ${overdueTasks.length} Overdue Task${overdueTasks.length > 1 ? 's' : ''}`,
-              body: overdueTasks.length === 1 
-                ? `"${overdueTasks[0].title}" is past due!`
-                : `"${overdueTasks[0].title}" and ${overdueTasks.length - 1} more need attention`,
-              data: { 
-                type: 'overdue-alert',
-                taskIds: overdueTasks.map(t => t.id)
-              },
-              tag: 'overdue-tasks'
-            }
-          });
+          try {
+            const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+              body: {
+                userId: profile.id,
+                title: `⚠️ ${overdueTasks.length} Overdue Task${overdueTasks.length > 1 ? 's' : ''}`,
+                body: overdueTasks.length === 1 
+                  ? `"${overdueTasks[0].title}" is past due!`
+                  : `"${overdueTasks[0].title}" and ${overdueTasks.length - 1} more need attention`,
+                data: { 
+                  type: 'overdue-alert',
+                  taskIds: overdueTasks.map(t => t.id)
+                },
+                tag: 'overdue-tasks'
+              }
+            });
 
-          if (pushError) {
-            console.error(`Error sending overdue notification to user ${profile.id}:`, pushError);
-          } else {
-            notificationsSent++;
-            console.log(`Sent overdue notification to user ${profile.id}`);
+            if (pushError) {
+              console.error(`Error sending overdue notification to user ${profile.id}:`, pushError);
+            } else {
+              notificationsSent++;
+              console.log(`Sent overdue notification to user ${profile.id} (${overdueTasks.length} tasks)`);
+            }
+          } catch (e) {
+            console.error(`Exception sending overdue notification to user ${profile.id}:`, e);
           }
         }
 
@@ -117,51 +146,59 @@ serve(async (req) => {
           continue;
         }
 
-        // Send daily summary at start of work hours
+        // Daily summary at start of work hours
         if (currentHour === workStart && todayTasks && todayTasks.length > 0) {
-          const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
-            body: {
-              userId: profile.id,
-              title: `📋 ${todayTasks.length} Task${todayTasks.length > 1 ? 's' : ''} Today`,
-              body: todayTasks.length === 1 
-                ? `Don't forget: "${todayTasks[0].title}"`
-                : `Starting with: "${todayTasks[0].title}"`,
-              data: { 
-                type: 'daily-summary',
-                taskIds: todayTasks.map(t => t.id)
-              },
-              tag: 'daily-summary'
-            }
-          });
+          try {
+            const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+              body: {
+                userId: profile.id,
+                title: `📋 ${todayTasks.length} Task${todayTasks.length > 1 ? 's' : ''} Today`,
+                body: todayTasks.length === 1 
+                  ? `Don't forget: "${todayTasks[0].title}"`
+                  : `Starting with: "${todayTasks[0].title}"`,
+                data: { 
+                  type: 'daily-summary',
+                  taskIds: todayTasks.map(t => t.id)
+                },
+                tag: 'daily-summary'
+              }
+            });
 
-          if (pushError) {
-            console.error(`Error sending daily summary to user ${profile.id}:`, pushError);
-          } else {
-            notificationsSent++;
-            console.log(`Sent daily summary to user ${profile.id}`);
+            if (pushError) {
+              console.error(`Error sending daily summary to user ${profile.id}:`, pushError);
+            } else {
+              notificationsSent++;
+              console.log(`Sent daily summary to user ${profile.id}`);
+            }
+          } catch (e) {
+            console.error(`Exception sending daily summary to user ${profile.id}:`, e);
           }
         }
 
-        // Check-in reminder (based on frequency)
+        // Check-in reminder based on frequency
         const frequency = profile.check_in_frequency || 4;
-        const shouldCheckIn = currentHour % frequency === 0 && currentHour >= workStart && currentHour < workEnd;
+        const shouldCheckIn = currentHour % frequency === 0 && currentHour !== workStart;
         
-        if (shouldCheckIn && currentHour !== workStart) { // Don't double-notify at start
-          const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
-            body: {
-              userId: profile.id,
-              title: '🎯 Quick Check-in',
-              body: 'How\'s your productivity? Take a moment to reflect.',
-              data: { type: 'check-in' },
-              tag: 'check-in'
-            }
-          });
+        if (shouldCheckIn) {
+          try {
+            const { error: pushError } = await supabase.functions.invoke('send-push-notification', {
+              body: {
+                userId: profile.id,
+                title: '🎯 Quick Check-in',
+                body: 'How\'s your productivity? Take a moment to reflect.',
+                data: { type: 'check-in' },
+                tag: 'check-in'
+              }
+            });
 
-          if (pushError) {
-            console.error(`Error sending check-in to user ${profile.id}:`, pushError);
-          } else {
-            notificationsSent++;
-            console.log(`Sent check-in reminder to user ${profile.id}`);
+            if (pushError) {
+              console.error(`Error sending check-in to user ${profile.id}:`, pushError);
+            } else {
+              notificationsSent++;
+              console.log(`Sent check-in reminder to user ${profile.id}`);
+            }
+          } catch (e) {
+            console.error(`Exception sending check-in to user ${profile.id}:`, e);
           }
         }
 
@@ -169,6 +206,8 @@ serve(async (req) => {
         console.error(`Error processing user ${profile.id}:`, userError);
       }
     }
+
+    console.log(`Completed: ${usersProcessed} users processed, ${notificationsSent} notifications sent`);
 
     return new Response(
       JSON.stringify({ 
