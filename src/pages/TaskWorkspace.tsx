@@ -33,6 +33,7 @@ import EndSessionModal from "@/components/EndSessionModal";
 import TaskProofUpload from "@/components/TaskProofUpload";
 import { useWorkSessionTimer } from "@/hooks/useWorkSessionTimer";
 import { format } from "date-fns";
+import { DateTimePicker } from "@/components/DateTimePicker";
 
 interface Task {
   id: string;
@@ -552,13 +553,12 @@ const TaskWorkspace = () => {
                     <Calendar className="h-3 w-3" />
                     Due Date
                   </div>
-                  <Input
-                    type="datetime-local"
-                    value={editedDueDate}
-                    onChange={(e) => setEditedDueDate(e.target.value)}
-                    className="text-sm rounded-xl mb-2"
+                  <DateTimePicker
+                    value={editedDueDate || undefined}
+                    onChange={(val) => setEditedDueDate(val || "")}
+                    placeholder="Pick due date & time"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-2">
                     <Button onClick={saveDueDate} size="sm" className="rounded-xl flex-1">
                       <Save className="h-4 w-4 mr-1" />
                       Save
