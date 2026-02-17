@@ -24,6 +24,7 @@ import { useBackButton } from "@/hooks/useBackButton";
 import { RepeatConfigSheet, RepeatConfig } from "./RepeatConfigSheet";
 import { formatRepeatDescription } from "@/utils/repeatTaskUtils";
 import { Switch } from "@/components/ui/switch";
+import { DateTimePicker } from "./DateTimePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -272,27 +273,12 @@ const TaskDialog = ({ open, onClose, onSave, task }: TaskDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="due_date">Due Date & Time (Optional)</Label>
-            <div className="flex gap-2">
-              <Input
-                id="due_date"
-                type="datetime-local"
-                value={formData.due_date || ""}
-                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                className="flex-1"
-              />
-              {formData.due_date && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setFormData({ ...formData, due_date: undefined })}
-                  title="Clear date"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            <Label>Due Date & Time (Optional)</Label>
+            <DateTimePicker
+              value={formData.due_date || undefined}
+              onChange={(val) => setFormData({ ...formData, due_date: val })}
+              placeholder="Pick date & time"
+            />
             <p className="text-xs text-muted-foreground">Leave empty for tasks without a deadline</p>
           </div>
 
