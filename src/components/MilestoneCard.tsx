@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { ChevronDown, Check, Clock } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import type { Milestone } from "@/hooks/useGoals";
 
 interface MilestoneTask {
@@ -16,6 +17,7 @@ interface MilestoneCardProps {
   milestone: Milestone;
   tasks: MilestoneTask[];
   onToggleTask?: (taskId: string, completed: boolean) => void;
+  onAddTask?: () => void;
   isLast?: boolean;
 }
 
@@ -25,7 +27,13 @@ const statusStyles: Record<string, string> = {
   pending: "bg-muted-foreground/30",
 };
 
-export default function MilestoneCard({ milestone, tasks, onToggleTask, isLast }: MilestoneCardProps) {
+const priorityDot: Record<string, string> = {
+  high: "bg-destructive",
+  medium: "bg-warning",
+  low: "bg-muted-foreground/50",
+};
+
+export default function MilestoneCard({ milestone, tasks, onToggleTask, onAddTask, isLast }: MilestoneCardProps) {
   const [open, setOpen] = useState(milestone.status === "active");
   const completedCount = tasks.filter((t) => t.status === "completed").length;
 
@@ -72,8 +80,14 @@ export default function MilestoneCard({ milestone, tasks, onToggleTask, isLast }
               <span className={`text-xs flex-1 ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
                 {task.title}
               </span>
+              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityDot[task.priority] || priorityDot.medium}`} />
             </label>
           ))}
+          {onAddTask && (
+            <Button variant="ghost" size="sm" onClick={onAddTask} className="w-full justify-start text-xs text-muted-foreground h-8 mt-1">
+              <Plus className="h-3 w-3 mr-1" /> Add task
+            </Button>
+          )}
         </CollapsibleContent>
       </Collapsible>
     </div>
