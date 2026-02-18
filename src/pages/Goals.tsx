@@ -77,7 +77,7 @@ export default function Goals() {
   if (!user) return null;
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-4 md:p-6 max-w-2xl w-full mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Target className="h-6 w-6" />
@@ -88,11 +88,11 @@ export default function Goals() {
         </Button>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="active" className="flex-1">Active</TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1">Completed</TabsTrigger>
-          <TabsTrigger value="all" className="flex-1">All</TabsTrigger>
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="all">All</TabsTrigger>
         </TabsList>
       </Tabs>
 
