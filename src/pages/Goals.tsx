@@ -69,7 +69,7 @@ export default function Goals() {
   };
 
   const filtered = goals.filter((g) => {
-    if (tab === "active") return g.status === "active";
+    if (tab === "active") return g.status === "active" || g.status === "paused";
     if (tab === "completed") return g.status === "completed";
     return true;
   });
