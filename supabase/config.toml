@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.ai-task-assistant]
 verify_jwt = false
+
+[functions.ai-goal-breakdown]
+verify_jwt = false

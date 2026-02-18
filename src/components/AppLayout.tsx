@@ -6,6 +6,7 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { 
   LayoutDashboard, 
   User, 
+  Target,
   Calendar, 
   BarChart3, 
   Settings, 
@@ -340,6 +341,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </Button>
               </TooltipTrigger>
               {!sidebarExpanded && <TooltipContent side="right">Check-in</TooltipContent>}
+            </Tooltip>
+
+            {/* Goals */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size={sidebarExpanded ? "default" : "icon"}
+                  onClick={() => navigate("/goals")}
+                  className={`${sidebarExpanded ? "w-full justify-start gap-2" : "h-10 w-10"} text-muted-foreground hover:text-foreground hover:bg-muted ${
+                    location.pathname.startsWith("/goals") ? "text-foreground bg-muted" : ""
+                  }`}
+                >
+                  <Target className="h-5 w-5" />
+                  {sidebarExpanded && <span>Goals</span>}
+                </Button>
+              </TooltipTrigger>
+              {!sidebarExpanded && <TooltipContent side="right">Goals</TooltipContent>}
             </Tooltip>
 
             {/* Calendar */}

@@ -55,6 +55,92 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          progress: number
+          status: string
+          success_criteria: string | null
+          target_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          success_criteria?: string | null
+          target_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          progress?: number
+          status?: string
+          success_criteria?: string | null
+          target_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      milestones: {
+        Row: {
+          created_at: string
+          description: string | null
+          goal_id: string
+          id: string
+          order_index: number
+          status: string
+          target_date: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          goal_id: string
+          id?: string
+          order_index?: number
+          status?: string
+          target_date?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          goal_id?: string
+          id?: string
+          order_index?: number
+          status?: string
+          target_date?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -368,7 +454,9 @@ export type Database = {
           description: string | null
           due_date: string | null
           estimated_duration: number | null
+          goal_id: string | null
           id: string
+          milestone_id: string | null
           notes: string | null
           priority: string
           progress: number
@@ -394,7 +482,9 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           estimated_duration?: number | null
+          goal_id?: string | null
           id?: string
+          milestone_id?: string | null
           notes?: string | null
           priority: string
           progress?: number
@@ -420,7 +510,9 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           estimated_duration?: number | null
+          goal_id?: string | null
           id?: string
+          milestone_id?: string | null
           notes?: string | null
           priority?: string
           progress?: number
@@ -439,7 +531,22 @@ export type Database = {
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       work_sessions: {
         Row: {
