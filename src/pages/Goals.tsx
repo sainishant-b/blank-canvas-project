@@ -105,10 +105,10 @@ export default function Goals() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 space-y-3">
           <Target className="h-12 w-12 mx-auto text-muted-foreground/40" />
-          <p className="text-muted-foreground">
-            {tab === "active" ? "No active goals yet" : tab === "completed" ? "No completed goals" : "No goals yet"}
+          <p className="text-muted-foreground text-base">
+            {tab === "active" ? "No active goals yet" : tab === "completed" ? "No completed goals yet" : "No goals yet"}
           </p>
-          <Button variant="outline" onClick={() => setShowDialog(true)}>
+          <Button variant="outline" size="lg" onClick={() => setShowDialog(true)}>
             <Plus className="h-4 w-4 mr-1" /> Create your first goal
           </Button>
         </div>
