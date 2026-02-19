@@ -21,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GOOGLE_GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GOOGLE_GEMINI_API_KEY is not configured");
+    const VOIDAI_API_KEY = Deno.env.get("VOIDAI_API_KEY");
+    if (!VOIDAI_API_KEY) {
+      throw new Error("VOIDAI_API_KEY is not configured");
     }
 
     const systemPrompt = `You are a productivity assistant that helps break down tasks into actionable subtasks. Given a task, provide:
@@ -48,10 +48,10 @@ Please suggest subtasks, a timeline, and a description for this task.`;
       messages.push({ role: "user", content: userPrompt });
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
+    const response = await fetch("https://api.voidai.app/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
+        Authorization: `Bearer ${VOIDAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

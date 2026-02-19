@@ -18,7 +18,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const geminiApiKey = Deno.env.get("GOOGLE_GEMINI_API_KEY");
+    const voidaiApiKey = Deno.env.get("VOIDAI_API_KEY");
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -104,11 +104,11 @@ serve(async (req) => {
         break;
     }
 
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`, {
+    const geminiResponse = await fetch("https://api.voidai.app/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${geminiApiKey}`,
+        Authorization: `Bearer ${voidaiApiKey}`,
       },
       body: JSON.stringify({
         model: "gemini-2.5-flash",

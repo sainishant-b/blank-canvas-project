@@ -12,9 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    const GEMINI_API_KEY = Deno.env.get('GOOGLE_GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GOOGLE_GEMINI_API_KEY is not configured');
+    const VOIDAI_API_KEY = Deno.env.get('VOIDAI_API_KEY');
+    if (!VOIDAI_API_KEY) {
+      throw new Error('VOIDAI_API_KEY is not configured');
     }
 
     const authHeader =
@@ -163,10 +163,10 @@ Focus on the top 5 most important tasks for today. Consider energy patterns from
 
     console.log('Calling Gemini AI...');
 
-    const aiResponse = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
+    const aiResponse = await fetch('https://api.voidai.app/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GEMINI_API_KEY}`,
+        'Authorization': `Bearer ${VOIDAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
