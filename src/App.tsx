@@ -16,6 +16,7 @@ import Insights from "./pages/Insights";
 import Goals from "./pages/Goals";
 import GoalDetail from "./pages/GoalDetail";
 import NotFound from "./pages/NotFound";
+import DataExport from "./pages/DataExport";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,7 @@ const App = () => (
             <Route path="/goals" element={<Goals />} />
             <Route path="/goals/:goalId" element={<GoalDetail />} />
             <Route path="/task/:taskId" element={<TaskWorkspace />} />
+            <Route path="/export" element={<DataExport />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>
