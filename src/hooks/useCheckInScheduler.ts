@@ -14,8 +14,8 @@ export const useCheckInScheduler = (profile: Profile | null, onCheckInDue: () =>
   const [isWorkHours, setIsWorkHours] = useState(false);
   const lastNotificationTime = useRef<number>(0);
 
-  const calculateCheckInTimes = useCallback((profile: Profile): Date[] => {
-    if (!profile) return [];
+  const calculateCheckInTimes = useCallback((profile: Profile): { times: Date[]; inWorkHours: boolean } => {
+    if (!profile) return { times: [], inWorkHours: false };
 
     const now = new Date();
     const [startHour, startMin] = profile.work_hours_start.split(':').map(Number);
@@ -29,9 +29,8 @@ export const useCheckInScheduler = (profile: Profile | null, onCheckInDue: () =>
 
     // Check if currently in work hours
     const inWorkHours = now >= workStart && now <= workEnd;
-    setIsWorkHours(inWorkHours);
 
-    if (!inWorkHours) return [];
+    if (!inWorkHours) return { times: [], inWorkHours };
 
     // Calculate interval between check-ins
     const workDurationMs = workEnd.getTime() - workStart.getTime();
@@ -46,7 +45,7 @@ export const useCheckInScheduler = (profile: Profile | null, onCheckInDue: () =>
       }
     }
 
-    return times;
+    return { times, inWorkHours };
   }, []);
 
   const getLastCheckInToday = useCallback(async (userId: string): Promise<Date | null> => {
@@ -68,7 +67,8 @@ export const useCheckInScheduler = (profile: Profile | null, onCheckInDue: () =>
     if (!profile) return;
 
     const checkSchedule = async () => {
-      const times = calculateCheckInTimes(profile);
+      const { times, inWorkHours } = calculateCheckInTimes(profile);
+      setIsWorkHours(inWorkHours);
       
       if (times.length === 0) {
         setNextCheckIn(null);

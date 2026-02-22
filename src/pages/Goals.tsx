@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Target } from "lucide-react";
+import { addMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GoalCard from "@/components/GoalCard";
 import GoalDialog from "@/components/GoalDialog";
 import { useGoals, useMilestones, type Goal } from "@/hooks/useGoals";
+import { useGoalProgress } from "@/hooks/useGoalProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +15,7 @@ export default function Goals() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { goals, loading, createGoal, fetchGoals } = useGoals();
+  const { generateOccurrences, recalculateGoalProgress } = useGoalProgress();
   const [showDialog, setShowDialog] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [tab, setTab] = useState("active");
@@ -28,7 +31,7 @@ export default function Goals() {
     const created = await createGoal(goalData);
     if (!created || !user) return;
 
-    // Create milestones and tasks from AI breakdown
+    // Create milestones and tasks
     if (milestones && milestones.length > 0) {
       for (let i = 0; i < milestones.length; i++) {
         const ms = milestones[i];
@@ -48,19 +51,62 @@ export default function Goals() {
 
         if (msData && ms.tasks) {
           for (const task of ms.tasks) {
-            await supabase.from("tasks").insert({
+            const { data: taskData } = await supabase.from("tasks").insert({
               user_id: user.id,
               title: task.title,
+              description: task.description || null,
               priority: task.priority || "medium",
+              status: task.status || "not_started",
               estimated_duration: task.estimated_duration || null,
-              category: goalData.category || "other",
+              category: task.category || goalData.category || "other",
+              due_date: task.due_date ? new Date(task.due_date).toISOString() : null,
+              repeat_enabled: task.repeat_enabled || false,
+              repeat_frequency: task.repeat_frequency || null,
+              repeat_unit: task.repeat_unit || null,
+              repeat_days_of_week: task.repeat_days_of_week || null,
+              repeat_times: task.repeat_times || null,
+              repeat_end_type: task.repeat_end_type || null,
+              repeat_end_date: task.repeat_end_date || null,
+              repeat_end_count: task.repeat_end_count || null,
+              requires_proof: task.requires_proof || false,
               goal_id: created.id,
               milestone_id: (msData as any).id,
-            } as any);
+            } as any).select().single();
+
+            // Create subtasks if any
+            if (taskData && task.subtasks && task.subtasks.length > 0) {
+              for (const subtask of task.subtasks) {
+                await supabase.from("subtasks").insert({
+                  task_id: (taskData as any).id,
+                  title: subtask.title,
+                  estimated_duration: subtask.estimated_duration || null,
+                } as any);
+              }
+            }
+
+            // Generate occurrences for recurring tasks
+            if (taskData && task.repeat_enabled && task.repeat_frequency && task.repeat_unit) {
+              const startDate = task.due_date ? new Date(task.due_date) : new Date();
+              // Use goal target date as end, or default to 3 months from now
+              const endDate = goalData.target_date
+                ? new Date(goalData.target_date)
+                : addMonths(new Date(), 3);
+
+              await generateOccurrences(
+                (taskData as any).id,
+                startDate,
+                endDate,
+                task.repeat_frequency,
+                task.repeat_unit,
+                task.repeat_days_of_week || null
+              );
+            }
           }
         }
       }
-      toast({ title: "Goal created with AI plan! 🎯" });
+      // Recalculate progress using occurrence-aware logic
+      await recalculateGoalProgress(created.id);
+      toast({ title: "Goal created with milestones! 🎯" });
     } else {
       toast({ title: "Goal created! 🎯" });
     }

@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { differenceInDays, format } from "date-fns";
+import { useEffect, useState } from "react";
+import { differenceInDays } from "date-fns";
+import { RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Goal } from "@/hooks/useGoals";
 
 const categoryColors: Record<string, string> = {
@@ -44,9 +47,23 @@ function ProgressRing({ progress, size = 56 }: { progress: number; size?: number
 
 export default function GoalCard({ goal }: { goal: Goal }) {
   const navigate = useNavigate();
+  const [hasRecurring, setHasRecurring] = useState(false);
   const daysLeft = goal.target_date
     ? differenceInDays(new Date(goal.target_date), new Date())
     : null;
+
+  useEffect(() => {
+    // Check if this goal has any recurring tasks
+    (async () => {
+      const { data } = await (supabase
+        .from("tasks")
+        .select("id") as any)
+        .eq("goal_id", goal.id)
+        .eq("repeat_enabled", true)
+        .limit(1);
+      setHasRecurring(data && data.length > 0);
+    })();
+  }, [goal.id]);
 
   return (
     <button
@@ -70,6 +87,11 @@ export default function GoalCard({ goal }: { goal: Goal }) {
             <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full capitalize ${categoryColors[goal.category] || categoryColors.other}`}>
               {goal.category}
             </span>
+            {hasRecurring && (
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-500 flex items-center gap-0.5">
+                <RotateCcw className="h-2.5 w-2.5" /> Recurring
+              </span>
+            )}
             {daysLeft !== null && (
               <span className={`text-[10px] font-medium ${daysLeft < 0 ? "text-destructive" : daysLeft < 7 ? "text-warning" : "text-muted-foreground"}`}>
                 {daysLeft < 0 ? `${Math.abs(daysLeft)}d overdue` : `${daysLeft}d left`}

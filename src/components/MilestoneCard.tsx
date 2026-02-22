@@ -11,6 +11,9 @@ interface MilestoneTask {
   title: string;
   status: string;
   priority: string;
+  repeat_enabled?: boolean;
+  repeat_unit?: string | null;
+  repeat_frequency?: number | null;
 }
 
 interface MilestoneCardProps {
@@ -19,6 +22,7 @@ interface MilestoneCardProps {
   onToggleTask?: (taskId: string, completed: boolean) => void;
   onAddTask?: () => void;
   isLast?: boolean;
+  renderTask?: (task: MilestoneTask) => React.ReactNode;
 }
 
 const statusStyles: Record<string, string> = {
@@ -33,7 +37,7 @@ const priorityDot: Record<string, string> = {
   low: "bg-muted-foreground/50",
 };
 
-export default function MilestoneCard({ milestone, tasks, onToggleTask, onAddTask, isLast }: MilestoneCardProps) {
+export default function MilestoneCard({ milestone, tasks, onToggleTask, onAddTask, isLast, renderTask }: MilestoneCardProps) {
   const [open, setOpen] = useState(milestone.status === "active");
   const completedCount = tasks.filter((t) => t.status === "completed").length;
 
@@ -69,19 +73,23 @@ export default function MilestoneCard({ milestone, tasks, onToggleTask, onAddTas
             <p className="text-xs text-muted-foreground italic">No tasks yet</p>
           )}
           {tasks.map((task) => (
-            <label
-              key={task.id}
-              className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer group/task"
-            >
-              <Checkbox
-                checked={task.status === "completed"}
-                onCheckedChange={(checked) => onToggleTask?.(task.id, !!checked)}
-              />
-              <span className={`text-xs flex-1 ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
-                {task.title}
-              </span>
-              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityDot[task.priority] || priorityDot.medium}`} />
-            </label>
+            renderTask ? (
+              <div key={task.id}>{renderTask(task)}</div>
+            ) : (
+              <label
+                key={task.id}
+                className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 cursor-pointer group/task"
+              >
+                <Checkbox
+                  checked={task.status === "completed"}
+                  onCheckedChange={(checked) => onToggleTask?.(task.id, !!checked)}
+                />
+                <span className={`text-xs flex-1 ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
+                  {task.title}
+                </span>
+                <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${priorityDot[task.priority] || priorityDot.medium}`} />
+              </label>
+            )
           ))}
           {onAddTask && (
             <Button variant="ghost" size="sm" onClick={onAddTask} className="w-full justify-start text-xs text-muted-foreground h-8 mt-1">

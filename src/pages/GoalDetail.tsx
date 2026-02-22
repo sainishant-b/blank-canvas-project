@@ -12,11 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import MilestoneCard from "@/components/MilestoneCard";
+import GoalTaskItem from "@/components/GoalTaskItem";
 import GoalEditDialog from "@/components/GoalEditDialog";
 import AddMilestoneDialog from "@/components/AddMilestoneDialog";
 import AddTaskToMilestoneDialog from "@/components/AddTaskToMilestoneDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useGoals, useMilestones, type Goal } from "@/hooks/useGoals";
+import { useGoalProgress, type OccurrenceRecord } from "@/hooks/useGoalProgress";
 import { useToast } from "@/hooks/use-toast";
 
 const categoryColors: Record<string, string> = {
@@ -33,11 +35,14 @@ export default function GoalDetail() {
   const { toast } = useToast();
   const { goals, updateGoal, deleteGoal, recalculateProgress, fetchGoals } = useGoals();
   const { milestones, loading: msLoading, createMilestone, fetchMilestones } = useMilestones(goalId);
+  const { recalculateGoalProgress, toggleTodayOccurrence, getTodayOccurrences, getOccurrenceStats } = useGoalProgress();
   const [milestoneTasks, setMilestoneTasks] = useState<Record<string, any[]>>({});
   const [timeInvested, setTimeInvested] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showAddMilestone, setShowAddMilestone] = useState(false);
   const [addTaskMilestone, setAddTaskMilestone] = useState<{ id: string; title: string } | null>(null);
+  const [todayOccurrences, setTodayOccurrences] = useState<Record<string, OccurrenceRecord>>({});
+  const [occurrenceStats, setOccurrenceStats] = useState<Record<string, { total: number; completed: number; streak: number }>>({});
 
   const goal = goals.find((g) => g.id === goalId);
 
@@ -46,14 +51,29 @@ export default function GoalDetail() {
     const { data } = await (supabase.from("tasks").select("*") as any).eq("goal_id", goalId);
     if (data) {
       const grouped: Record<string, any[]> = {};
+      const recurringIds: string[] = [];
       for (const t of data as any[]) {
         const msId = t.milestone_id || "__unlinked";
         if (!grouped[msId]) grouped[msId] = [];
         grouped[msId].push(t);
+        if (t.repeat_enabled) recurringIds.push(t.id);
       }
       setMilestoneTasks(grouped);
+
+      // Fetch today's occurrences for recurring tasks
+      if (recurringIds.length > 0) {
+        const todayMap = await getTodayOccurrences(recurringIds);
+        setTodayOccurrences(todayMap);
+
+        // Fetch stats for each recurring task
+        const statsMap: Record<string, { total: number; completed: number; streak: number }> = {};
+        for (const id of recurringIds) {
+          statsMap[id] = await getOccurrenceStats(id);
+        }
+        setOccurrenceStats(statsMap);
+      }
     }
-  }, [goalId]);
+  }, [goalId, getTodayOccurrences, getOccurrenceStats]);
 
   const fetchTimeInvested = useCallback(async () => {
     if (!goalId) return;
@@ -72,12 +92,27 @@ export default function GoalDetail() {
   }, [fetchTasksForMilestones, fetchTimeInvested, milestones]);
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
-    await supabase.from("tasks").update({
-      status: completed ? "completed" : "not_started",
-      completed_at: completed ? new Date().toISOString() : null,
-    }).eq("id", taskId);
+    // Check if this is a recurring task
+    const allTasks = Object.values(milestoneTasks).flat();
+    const task = allTasks.find((t: any) => t.id === taskId);
+
+    if (task?.repeat_enabled) {
+      // Recurring task: toggle today's occurrence only
+      await toggleTodayOccurrence(taskId, completed);
+      // Use occurrence-aware progress
+      if (goalId) await recalculateGoalProgress(goalId);
+    } else {
+      // Non-recurring task: toggle the task status directly
+      await supabase.from("tasks").update({
+        status: completed ? "completed" : "not_started",
+        completed_at: completed ? new Date().toISOString() : null,
+      }).eq("id", taskId);
+      // Use occurrence-aware progress (handles mixed recurring/non-recurring)
+      if (goalId) await recalculateGoalProgress(goalId);
+    }
+
     await fetchTasksForMilestones();
-    if (goalId) await recalculateProgress(goalId);
+    await fetchGoals();
   };
 
   const handleDelete = async () => {
@@ -269,6 +304,14 @@ export default function GoalDetail() {
                 onToggleTask={handleToggleTask}
                 onAddTask={() => setAddTaskMilestone({ id: ms.id, title: ms.title })}
                 isLast={i === milestones.length - 1}
+                renderTask={(task) => (
+                  <GoalTaskItem
+                    task={task}
+                    todayOccurrence={todayOccurrences[task.id] || null}
+                    occurrenceStats={occurrenceStats[task.id]}
+                    onToggle={handleToggleTask}
+                  />
+                )}
               />
             ))}
           </div>
