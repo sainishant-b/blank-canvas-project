@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
       check_ins: {
@@ -539,41 +544,6 @@ export type Database = {
             columns: ["milestone_id"]
             isOneToOne: false
             referencedRelation: "milestones"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_occurrences: {
-        Row: {
-          id: string
-          task_id: string
-          due_date: string
-          completed: boolean
-          completed_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          task_id: string
-          due_date: string
-          completed?: boolean
-          completed_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          task_id?: string
-          due_date?: string
-          completed?: boolean
-          completed_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_occurrences_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]
