@@ -126,11 +126,37 @@ Break this goal into realistic milestones and tasks.`;
     const aiData = await response.json();
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
-    if (!toolCall) {
-      throw new Error("No tool call returned from AI");
+    let result;
+    if (toolCall?.function?.arguments) {
+      result = typeof toolCall.function.arguments === "string"
+        ? JSON.parse(toolCall.function.arguments)
+        : toolCall.function.arguments;
+    } else {
+      // Fallback: try to parse structured JSON from content
+      const content = aiData.choices?.[0]?.message?.content;
+      if (content) {
+        try {
+          // Try to extract JSON from markdown code blocks or raw JSON
+          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
+          if (jsonMatch) {
+            result = JSON.parse(jsonMatch[1].trim());
+          } else {
+            throw new Error("Could not extract JSON from content");
+          }
+        } catch (parseErr) {
+          console.error("Failed to parse content as JSON:", content);
+          throw new Error("AI did not return structured data");
+        }
+      } else {
+        console.error("AI response:", JSON.stringify(aiData));
+        throw new Error("No tool call or content returned from AI");
+      }
     }
 
-    const result = JSON.parse(toolCall.function.arguments);
+    // Validate minimum structure
+    if (!result.milestones || !Array.isArray(result.milestones)) {
+      throw new Error("Invalid response structure: missing milestones array");
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
