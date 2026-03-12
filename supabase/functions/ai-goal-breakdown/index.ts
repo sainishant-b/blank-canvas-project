@@ -6,6 +6,32 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const extractJsonFromContent = (content: string) => {
+  const jsonMatch =
+    content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
+    content.match(/(\{[\s\S]*\})/);
+
+  if (!jsonMatch) throw new Error("Could not extract JSON from content");
+  return JSON.parse(jsonMatch[1].trim());
+};
+
+const extractToolResult = (aiData: any, toolName: string) => {
+  const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
+
+  if (toolCall?.function?.name === toolName && toolCall?.function?.arguments) {
+    return typeof toolCall.function.arguments === "string"
+      ? JSON.parse(toolCall.function.arguments)
+      : toolCall.function.arguments;
+  }
+
+  const content = aiData?.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("No tool call or content returned from AI");
+  }
+
+  return extractJsonFromContent(content);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -21,14 +47,12 @@ serve(async (req) => {
       );
     }
 
-    const VOIDAI_API_KEY = Deno.env.get("VOIDAI_API_KEY");
-    if (!VOIDAI_API_KEY) {
-      throw new Error("VOIDAI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const timeline = targetDate
-      ? `Target date: ${targetDate}`
-      : "No specific deadline";
+    const timeline = targetDate ? `Target date: ${targetDate}` : "No specific deadline";
 
     const systemPrompt = `You are a productivity coach that breaks goals into achievable milestones and tasks. Given a goal, create a realistic plan with:
 1. 2-5 milestones (monthly/quarterly checkpoints)
@@ -45,14 +69,14 @@ ${timeline}
 
 Break this goal into realistic milestones and tasks.`;
 
-    const response = await fetch("https://api.voidai.app/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${VOIDAI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -118,43 +142,16 @@ Break this goal into realistic milestones and tasks.`;
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+
       const text = await response.text();
       console.error("AI gateway error:", response.status, text);
       throw new Error(`AI API error: ${response.status}`);
     }
 
     const aiData = await response.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    const result = extractToolResult(aiData, "create_goal_plan");
 
-    let result;
-    if (toolCall?.function?.arguments) {
-      result = typeof toolCall.function.arguments === "string"
-        ? JSON.parse(toolCall.function.arguments)
-        : toolCall.function.arguments;
-    } else {
-      // Fallback: try to parse structured JSON from content
-      const content = aiData.choices?.[0]?.message?.content;
-      if (content) {
-        try {
-          // Try to extract JSON from markdown code blocks or raw JSON
-          const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
-          if (jsonMatch) {
-            result = JSON.parse(jsonMatch[1].trim());
-          } else {
-            throw new Error("Could not extract JSON from content");
-          }
-        } catch (parseErr) {
-          console.error("Failed to parse content as JSON:", content);
-          throw new Error("AI did not return structured data");
-        }
-      } else {
-        console.error("AI response:", JSON.stringify(aiData));
-        throw new Error("No tool call or content returned from AI");
-      }
-    }
-
-    // Validate minimum structure
-    if (!result.milestones || !Array.isArray(result.milestones)) {
+    if (!Array.isArray(result?.milestones)) {
       throw new Error("Invalid response structure: missing milestones array");
     }
 

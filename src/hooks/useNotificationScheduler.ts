@@ -103,7 +103,7 @@ export const useNotificationScheduler = ({
   const lastCheckInScheduleRef = useRef<string | null>(null);
   const dailyNotificationScheduledRef = useRef<string | null>(null);
   const previousTasksRef = useRef<Record<string, Task>>({});
-  const backgroundCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const backgroundCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track overdue reminder counts per task (max 3 per day for high priority)
   const overdueReminderCountsRef = useRef<Record<string, number>>({});
