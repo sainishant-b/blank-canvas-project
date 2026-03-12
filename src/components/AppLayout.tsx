@@ -45,7 +45,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const hasTriggeredInitialCheckIn = useRef(false);
-  const hourlyNotificationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const hourlyNotificationInterval = useRef<NodeJS.Timeout | null>(null);
 
   const checkInQuestions = [
     "What are you working on right now?",

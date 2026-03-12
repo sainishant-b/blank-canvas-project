@@ -3,33 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const extractJsonFromContent = (content: string) => {
-  const jsonMatch =
-    content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
-    content.match(/(\{[\s\S]*\})/);
-
-  if (!jsonMatch) throw new Error("Could not extract JSON from content");
-  return JSON.parse(jsonMatch[1].trim());
-};
-
-const extractToolResult = (aiData: any, toolName: string) => {
-  const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
-
-  if (toolCall?.function?.name === toolName && toolCall?.function?.arguments) {
-    return typeof toolCall.function.arguments === "string"
-      ? JSON.parse(toolCall.function.arguments)
-      : toolCall.function.arguments;
-  }
-
-  const content = aiData?.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("No tool call or content returned from AI");
-  }
-
-  return extractJsonFromContent(content);
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
@@ -38,13 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const {
-      taskTitle,
-      taskDescription,
-      taskCategory,
-      taskPriority,
-      conversationHistory,
-    } = await req.json();
+    const { taskTitle, taskDescription, taskCategory, taskPriority, conversationHistory } = await req.json();
 
     if (!taskTitle) {
       return new Response(
@@ -53,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const VOIDAI_API_KEY = Deno.env.get("VOIDAI_API_KEY");
+    if (!VOIDAI_API_KEY) {
+      throw new Error("VOIDAI_API_KEY is not configured");
     }
 
     const systemPrompt = `You are a productivity assistant that helps break down tasks into actionable subtasks. Given a task, provide:
@@ -67,9 +35,11 @@ serve(async (req) => {
 
 Use the provided tool to return structured data. Keep subtask titles concise (under 80 chars). Be practical and specific.`;
 
-    const messages: { role: string; content: string }[] = [{ role: "system", content: systemPrompt }];
+    const messages: { role: string; content: string }[] = [
+      { role: "system", content: systemPrompt },
+    ];
 
-    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+    if (conversationHistory && conversationHistory.length > 0) {
       messages.push(...conversationHistory);
     } else {
       const userPrompt = `Task: "${taskTitle}"${taskDescription ? `\nDescription: ${taskDescription}` : ""}${taskCategory ? `\nCategory: ${taskCategory}` : ""}${taskPriority ? `\nPriority: ${taskPriority}` : ""}
@@ -78,14 +48,14 @@ Please suggest subtasks, a timeline, and a description for this task.`;
       messages.push({ role: "user", content: userPrompt });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.voidai.app/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${VOIDAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages,
         tools: [
           {
@@ -144,11 +114,13 @@ Please suggest subtasks, a timeline, and a description for this task.`;
     }
 
     const aiData = await response.json();
-    const result = extractToolResult(aiData, "suggest_task_plan");
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
 
-    if (!Array.isArray(result?.subtasks)) {
-      throw new Error("Invalid AI response: subtasks array missing");
+    if (!toolCall) {
+      throw new Error("No tool call returned from AI");
     }
+
+    const result = JSON.parse(toolCall.function.arguments);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

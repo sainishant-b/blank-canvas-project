@@ -2,112 +2,110 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const extractJsonFromContent = (content: string) => {
-  const jsonMatch =
-    content.match(/```(?:json)?\s*([\s\S]*?)```/) ||
-    content.match(/(\{[\s\S]*\})/);
-
-  if (!jsonMatch) throw new Error("Could not extract JSON from content");
-  return JSON.parse(jsonMatch[1].trim());
-};
-
-const extractToolResult = (aiData: any, toolName: string) => {
-  const toolCall = aiData?.choices?.[0]?.message?.tool_calls?.[0];
-
-  if (toolCall?.function?.name === toolName && toolCall?.function?.arguments) {
-    return typeof toolCall.function.arguments === "string"
-      ? JSON.parse(toolCall.function.arguments)
-      : toolCall.function.arguments;
-  }
-
-  const content = aiData?.choices?.[0]?.message?.content;
-  if (!content) throw new Error("No tool call or content returned from AI");
-  return extractJsonFromContent(content);
-};
-
-const sanitizeWarningMessage = (message: string) =>
-  message
-    .replace(/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
+  if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const VOIDAI_API_KEY = Deno.env.get('VOIDAI_API_KEY');
+    if (!VOIDAI_API_KEY) {
+      throw new Error('VOIDAI_API_KEY is not configured');
     }
 
-    const authHeader = req.headers.get("authorization") ?? req.headers.get("Authorization") ?? "";
-    if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const authHeader =
+      req.headers.get('authorization') ?? req.headers.get('Authorization') ?? '';
+
+    if (!authHeader || !authHeader.toLowerCase().startsWith('bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
 
-    const jwt = authHeader.replace(/Bearer\s+/i, "").trim();
+    // Get user from auth (pass JWT explicitly to avoid relying on client session state)
+    const jwt = authHeader.replace(/Bearer\s+/i, '').trim();
     const {
       data: { user },
       error: userError,
     } = await supabaseClient.auth.getUser(jwt);
 
     if (userError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: tasks, error: tasksError } = await supabaseClient
-      .from("tasks")
-      .select("id, title, description, priority, status, category, due_date, estimated_duration, progress, created_at")
-      .eq("user_id", user.id)
-      .neq("status", "completed")
-      .order("created_at", { ascending: false });
-
-    if (tasksError) throw tasksError;
-
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("work_hours_start, work_hours_end, timezone, current_streak")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    const { data: checkIns } = await supabaseClient
-      .from("check_ins")
-      .select("mood, energy_level, created_at")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
-
-    const taskList = tasks || [];
-    if (taskList.length === 0) {
+      console.error('Auth error:', userError);
       return new Response(
-        JSON.stringify({
-          recommendedTasks: [],
-          insights: ["No active tasks found. Add tasks to get tailored daily recommendations."],
-          warnings: [],
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
       );
     }
 
+
+    console.log('Fetching tasks and data for user:', user.id);
+
+    // Fetch user's incomplete tasks only (exclude completed)
+    const { data: tasks, error: tasksError } = await supabaseClient
+      .from('tasks')
+      .select('*')
+      .eq('user_id', user.id)
+      .neq('status', 'completed')
+      .order('created_at', { ascending: false });
+
+    if (tasksError) {
+      console.error('Error fetching tasks:', tasksError);
+      throw tasksError;
+    }
+
+    // Fetch user's profile
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+    }
+
+    // Fetch recent check-ins for energy/mood patterns
+    const { data: checkIns, error: checkInsError } = await supabaseClient
+      .from('check_ins')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (checkInsError) {
+      console.error('Error fetching check-ins:', checkInsError);
+    }
+
+    console.log('Data fetched:', {
+      tasksCount: tasks?.length,
+      hasProfile: !!profile,
+      checkInsCount: checkIns?.length,
+    });
+
+    // Build context for AI
     const context = {
-      tasks: taskList.map((t) => ({
+      tasks: tasks?.map(t => ({
         id: t.id,
         title: t.title,
         description: t.description,
@@ -123,182 +121,171 @@ serve(async (req) => {
         end: profile?.work_hours_end,
         timezone: profile?.timezone,
       },
-      recentCheckIns: checkIns || [],
+      recentCheckIns: checkIns?.map(c => ({
+        mood: c.mood,
+        energy_level: c.energy_level,
+        created_at: c.created_at,
+      })),
       streak: profile?.current_streak,
     };
 
     const now = new Date();
-    const today = now.toISOString().split("T")[0];
-
     const systemPrompt = `You are an AI productivity assistant specializing in task scheduling optimization.
-
+  
 Your goal is to recommend the DAILY TOP 5 tasks with optimal time slots based on:
 - Task priority, due dates, and estimated duration
-- User's energy patterns from check-ins
+- User's energy patterns (identify peak productivity times from check-in history)
+- Historical mood and completion patterns
 - Current date/time context
 
 SMART MATCHING RULES:
 - Match high-priority/complex tasks with peak energy times
-- Schedule quick wins during lower-energy periods
-- Respect work hours preferences (${profile?.work_hours_start || "09:00"} to ${profile?.work_hours_end || "18:00"})
+- Schedule quick wins during low energy periods
+- Respect work hours preferences (${profile?.work_hours_start} to ${profile?.work_hours_end})
 - Balance workload across the day
 
-CRITICAL: In all warnings/messages, never include task IDs or UUIDs. Use task titles only.
+CRITICAL: In ALL messages and warnings, NEVER include task IDs or UUIDs. Always refer to tasks ONLY by their title. For example, say "Task 'Complete report' is overdue" instead of including any ID.
 
 Always provide:
-1) Top 5 task recommendations for today with specific time slots
-2) Brief actionable reasoning for each recommendation
-3) Warnings (overdue/conflict/overload) with task titles only
-4) 2-3 overall insights`;
+1. Top 5 task recommendations for TODAY with specific time slots
+2. Brief, actionable reasoning for each recommendation (1-2 sentences max)
+3. Warnings about: overdue tasks, schedule conflicts, workload concerns (use task titles only, no IDs)
+4. Overall insights about the user's schedule and patterns (2-3 key points)`;
 
-    const userPrompt = `Analyze and recommend scheduling for TODAY (${now.toLocaleDateString()}):\n\n${JSON.stringify(context, null, 2)}\n\nCurrent time: ${now.toLocaleTimeString()}`;
+    const userPrompt = `Analyze and recommend scheduling for TODAY (${now.toLocaleDateString()}):
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
+USER DATA:
+${JSON.stringify(context, null, 2)}
+
+Current time: ${now.toLocaleTimeString()}
+
+Focus on the top 5 most important tasks for today. Consider energy patterns from check-ins, task urgency, and optimal timing.`;
+
+    console.log('Calling Gemini AI...');
+
+    const aiResponse = await fetch('https://api.voidai.app/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${VOIDAI_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: 'gemini-2.5-flash',
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
         ],
         tools: [
           {
-            type: "function",
+            type: 'function',
             function: {
-              name: "suggest_task_schedule",
-              description: "Provide daily top 5 task recommendations with smart time matching",
+              name: 'suggest_task_schedule',
+              description: 'Provide daily top 5 task recommendations with smart time matching',
               parameters: {
-                type: "object",
+                type: 'object',
                 properties: {
                   recommendedTasks: {
-                    type: "array",
+                    type: 'array',
+                    description: 'Top 5 tasks recommended for today with optimal time slots (max 5 items)',
                     maxItems: 5,
                     items: {
-                      type: "object",
+                      type: 'object',
                       properties: {
-                        taskId: { type: "string" },
-                        title: { type: "string" },
-                        suggestedTime: { type: "string" },
-                        suggestedDate: { type: "string" },
-                        reasoning: { type: "string" },
-                        confidence: { type: "string", enum: ["high", "medium", "low"] },
-                        priority: { type: "string", enum: ["high", "medium", "low"] },
-                        progress: { type: "number" },
-                        status: { type: "string" },
+                        taskId: { type: 'string', description: 'UUID of the task' },
+                        title: { type: 'string', description: 'Task title' },
+                        suggestedTime: { type: 'string', description: 'Time slot (e.g., "9:00 AM - 11:00 AM")' },
+                        suggestedDate: { type: 'string', description: 'Date in YYYY-MM-DD format' },
+                        reasoning: { type: 'string', description: 'Brief explanation (1-2 sentences)' },
+                        confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+                        priority: { type: 'string', enum: ['high', 'medium', 'low'] },
+                        progress: { type: 'number', description: 'Task progress percentage (0-100)' },
+                        status: { type: 'string', description: 'Task status (not_started, in_progress, completed)' }
                       },
-                      required: ["title", "suggestedTime", "suggestedDate", "reasoning", "confidence", "priority"],
-                    },
+                      required: ['taskId', 'title', 'suggestedTime', 'suggestedDate', 'reasoning', 'confidence', 'priority']
+                    }
                   },
                   insights: {
-                    type: "array",
-                    items: { type: "string" },
+                    type: 'array',
+                    description: 'Key insights about schedule and patterns (2-3 items)',
+                    items: { type: 'string' }
                   },
                   warnings: {
-                    type: "array",
+                    type: 'array',
+                    description: 'Important warnings about schedule issues. IMPORTANT: Never include task IDs or UUIDs in messages - use task titles only.',
                     items: {
-                      type: "object",
+                      type: 'object',
                       properties: {
-                        type: { type: "string", enum: ["overdue", "conflict", "overload", "other"] },
-                        message: { type: "string" },
+                        type: { type: 'string', enum: ['overdue', 'conflict', 'overload', 'other'] },
+                        message: { type: 'string', description: 'Warning message using task titles only, never include IDs' }
                       },
-                      required: ["type", "message"],
-                    },
-                  },
+                      required: ['type', 'message']
+                    }
+                  }
                 },
-                required: ["recommendedTasks", "insights", "warnings"],
-              },
-            },
-          },
+                required: ['recommendedTasks', 'insights', 'warnings']
+              }
+            }
+          }
         ],
-        tool_choice: { type: "function", function: { name: "suggest_task_schedule" } },
+        tool_choice: { type: 'function', function: { name: 'suggest_task_schedule' } },
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
+      console.error('AI API error:', aiResponse.status, errorText);
+      
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add credits to continue." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
+      
       throw new Error(`AI API error: ${aiResponse.status} ${errorText}`);
     }
 
-    const aiData = await aiResponse.json();
-    const rawResult = extractToolResult(aiData, "suggest_task_schedule");
+    const aiResponseData = await aiResponse.json();
+    console.log('AI response received:', JSON.stringify(aiResponseData));
 
-    const taskMap = new Map(taskList.map((t) => [t.id, t]));
+    const toolCall = aiResponseData.choices[0]?.message?.tool_calls?.[0];
+    if (!toolCall || toolCall.function.name !== 'suggest_task_schedule') {
+      throw new Error('AI did not provide recommendations');
+    }
 
-    const recommendedTasks = (Array.isArray(rawResult?.recommendedTasks) ? rawResult.recommendedTasks : [])
-      .map((rec: any) => {
-        const byId = typeof rec?.taskId === "string" ? taskMap.get(rec.taskId) : undefined;
-        const byTitle = !byId && typeof rec?.title === "string"
-          ? taskList.find((t) => t.title.toLowerCase() === rec.title.toLowerCase())
-          : undefined;
-
-        const task = byId || byTitle;
-        if (!task) return null;
-
+    const result = JSON.parse(toolCall.function.arguments);
+    
+    // Merge task progress/status from fetched tasks into recommendations
+    const taskMap = new Map(tasks?.map(t => [t.id, t]) || []);
+    if (result.recommendedTasks) {
+      result.recommendedTasks = result.recommendedTasks.map((rec: any) => {
+        const task = taskMap.get(rec.taskId);
         return {
-          taskId: task.id,
-          title: task.title,
-          suggestedTime:
-            typeof rec?.suggestedTime === "string" && rec.suggestedTime.trim().length > 0
-              ? rec.suggestedTime
-              : "09:00 AM - 10:00 AM",
-          suggestedDate:
-            typeof rec?.suggestedDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(rec.suggestedDate)
-              ? rec.suggestedDate
-              : today,
-          reasoning:
-            typeof rec?.reasoning === "string" && rec.reasoning.trim().length > 0
-              ? rec.reasoning
-              : "Recommended based on priority and due date.",
-          confidence: ["high", "medium", "low"].includes(rec?.confidence) ? rec.confidence : "medium",
-          priority: ["high", "medium", "low"].includes(rec?.priority) ? rec.priority : (task.priority as "high" | "medium" | "low"),
-          progress: task.progress ?? 0,
-          status: task.status ?? "not_started",
+          ...rec,
+          progress: task?.progress ?? 0,
+          status: task?.status ?? 'not_started',
         };
-      })
-      .filter(Boolean)
-      .slice(0, 5);
-
-    const insights = Array.isArray(rawResult?.insights)
-      ? rawResult.insights.filter((i: unknown) => typeof i === "string").slice(0, 3)
-      : [];
-
-    const warnings = (Array.isArray(rawResult?.warnings) ? rawResult.warnings : [])
-      .map((w: any) => ({
-        type: ["overdue", "conflict", "overload", "other"].includes(w?.type) ? w.type : "other",
-        message: sanitizeWarningMessage(typeof w?.message === "string" ? w.message : "Potential schedule issue detected."),
-      }))
-      .filter((w: { message: string }) => w.message.length > 0)
-      .slice(0, 5);
+      });
+    }
+    
+    console.log('AI Recommendations generated:', result);
 
     return new Response(
-      JSON.stringify({
-        recommendedTasks,
-        insights,
-        warnings,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error: any) {
-    console.error("Error in task-recommendations function:", error);
+    console.error('Error in task-recommendations function:', error);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: error.message || 'Internal server error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
