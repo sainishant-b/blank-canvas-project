@@ -96,9 +96,9 @@ export function useCalendarAI() {
       let successCount = 0;
       for (const proposal of approved) {
         try {
+          const proposedDateTime = `${proposal.proposedDate}T${proposal.proposedTime || "09:00"}:00`;
           await onTaskUpdate(proposal.taskId, {
-            scheduled_date: proposal.proposedDate,
-            scheduled_time: proposal.proposedTime,
+            due_date: new Date(proposedDateTime).toISOString(),
           });
           successCount++;
         } catch (err) {
