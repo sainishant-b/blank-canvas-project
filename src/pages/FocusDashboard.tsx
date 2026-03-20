@@ -162,7 +162,7 @@ const FocusDashboard = () => {
         {focusTask && !loading && (
           <Button
             onClick={handleStartSession}
-            className="w-full h-16 text-lg font-heading font-bold rounded-2xl bg-accent-orange text-primary-foreground hover:opacity-90 shadow-[var(--shadow-glow-orange)] transition-all"
+            className="w-full h-16 text-lg font-heading font-bold rounded-2xl bg-primary text-primary-foreground hover:bg-primary-hover shadow-[var(--shadow-lg)] transition-all"
             style={{ minHeight: 64 }}
           >
             <Play className="h-5 w-5 mr-2 fill-current" />
@@ -204,7 +204,7 @@ const FocusDashboard = () => {
               className="text-muted-foreground text-xs gap-1.5"
             >
               <List className="h-3.5 w-3.5" />
-              View All Tasks
+              Dashboard
             </Button>
             {focusTask && (
               <Button
