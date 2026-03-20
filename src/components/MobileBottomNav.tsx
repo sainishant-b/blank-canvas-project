@@ -10,7 +10,7 @@ export default function MobileBottomNav({ onCheckIn }: MobileBottomNavProps) {
   const location = useLocation();
 
   const navItems = [
-    { icon: Clock, label: "Check-in", action: () => onCheckIn(), isActive: false },
+    { icon: Crosshair, label: "Focus", action: () => navigate("/"), isActive: location.pathname === "/" },
     { icon: Target, label: "Goals", action: () => navigate("/goals"), isActive: location.pathname.startsWith("/goals") },
     { icon: Calendar, label: "Calendar", action: () => navigate("/calendar"), isActive: location.pathname === "/calendar" },
     { icon: BarChart3, label: "Insights", action: () => navigate("/insights"), isActive: location.pathname === "/insights" },
