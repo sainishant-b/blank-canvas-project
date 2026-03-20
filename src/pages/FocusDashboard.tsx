@@ -176,7 +176,7 @@ const FocusDashboard = () => {
             tasks={upNextTasks}
             totalRemaining={remainingCount}
             onSelectTask={handleSelectFocus}
-            onViewAll={() => navigate("/")}
+            onViewAll={() => navigate("/tasks")}
           />
         )}
 
