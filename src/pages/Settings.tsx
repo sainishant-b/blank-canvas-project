@@ -30,6 +30,7 @@ const Settings = () => {
   const [emailOverdueAlerts, setEmailOverdueAlerts] = useState(true);
   const [emailWeeklyReports, setEmailWeeklyReports] = useState(true);
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [pomodoroSettings, setPomodoroSettingsState] = useState<PomodoroSettings>(loadPomodoroSettings);
 
   const isEmbeddedPreview = (() => {
     try {
