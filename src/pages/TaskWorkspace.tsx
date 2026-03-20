@@ -90,8 +90,11 @@ const TaskWorkspace = () => {
     isWorking,
     sessionStart,
     elapsedSeconds,
+    remainingSeconds,
+    phase,
     startSession,
     endSession,
+    skipPhase,
     formatTime,
     formatTimeReadable,
   } = useWorkSessionTimer(taskId);
