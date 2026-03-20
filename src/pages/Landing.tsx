@@ -203,7 +203,10 @@ function FeaturesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {features.map((f, i) => (
             <ScrollReveal key={f.title} delay={i * 80}>
-              <div className="relative rounded-2xl border border-border bg-card p-5 sm:p-6 min-h-[10rem]">
+              <button
+                onClick={() => setSelectedFeature(f)}
+                className="relative rounded-2xl border border-border bg-card p-5 sm:p-6 min-h-[10rem] w-full text-left cursor-pointer group active:scale-[0.98] transition-transform"
+              >
                 <GlowingEffect
                   spread={40}
                   glow
@@ -213,17 +216,54 @@ function FeaturesSection() {
                   borderWidth={2}
                 />
                 <div className="relative z-10">
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-4">
-                    <f.icon className="h-5 w-5 text-foreground" />
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                      <f.icon className="h-5 w-5 text-foreground" />
+                    </div>
+                    <Eye className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1" />
                   </div>
                   <h3 className="font-heading text-base font-semibold mb-1.5">{f.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
+                  <span className="inline-block mt-3 text-xs text-muted-foreground/60 group-hover:text-foreground/60 transition-colors">
+                    Click to preview →
+                  </span>
                 </div>
-              </div>
+              </button>
             </ScrollReveal>
           ))}
         </div>
       </div>
+
+      {/* Feature preview dialog */}
+      <Dialog open={!!selectedFeature} onOpenChange={(open) => !open && setSelectedFeature(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden p-0 gap-0 rounded-2xl border-border">
+          {selectedFeature && (
+            <>
+              <DialogHeader className="p-5 sm:p-6 pb-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <selectedFeature.icon className="h-5 w-5 text-foreground" />
+                  </div>
+                  <div>
+                    <DialogTitle className="font-heading text-lg">{selectedFeature.title}</DialogTitle>
+                    <p className="text-muted-foreground text-sm mt-0.5">{selectedFeature.description}</p>
+                  </div>
+                </div>
+              </DialogHeader>
+              <div className="p-4 sm:p-6 pt-4">
+                <div className="rounded-xl overflow-hidden border border-border bg-muted/30">
+                  <img
+                    src={selectedFeature.screenshot}
+                    alt={`${selectedFeature.title} preview`}
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
