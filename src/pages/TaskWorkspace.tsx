@@ -411,7 +411,7 @@ const TaskWorkspace = () => {
       return;
     }
     toast.success("Task deleted");
-    navigate("/");
+    navigate("/focus");
   };
 
   const priorityColors = {
