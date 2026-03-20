@@ -25,7 +25,9 @@ import {
   Tag,
   Camera,
   Star,
-  Trash2
+  Trash2,
+  SkipForward,
+  Coffee
 } from "lucide-react";
 import CheckInModal from "@/components/CheckInModal";
 import SubtaskList from "@/components/SubtaskList";
