@@ -11,9 +11,9 @@ export default function MobileBottomNav({ onCheckIn }: MobileBottomNavProps) {
 
   const navItems = [
     { icon: Crosshair, label: "Focus", action: () => navigate("/"), isActive: location.pathname === "/" },
+    { icon: ListTodo, label: "Dashboard", action: () => navigate("/tasks"), isActive: location.pathname === "/tasks" },
     { icon: Target, label: "Goals", action: () => navigate("/goals"), isActive: location.pathname.startsWith("/goals") },
     { icon: Calendar, label: "Calendar", action: () => navigate("/calendar"), isActive: location.pathname === "/calendar" },
-    { icon: BarChart3, label: "Insights", action: () => navigate("/insights"), isActive: location.pathname === "/insights" },
     { icon: Settings, label: "Settings", action: () => navigate("/settings"), isActive: location.pathname === "/settings" },
   ];
 
