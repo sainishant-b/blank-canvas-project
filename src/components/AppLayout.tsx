@@ -328,6 +328,24 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {!sidebarExpanded && <TooltipContent side="right">Dashboard</TooltipContent>}
             </Tooltip>
 
+            {/* Tasks */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size={sidebarExpanded ? "default" : "icon"}
+                  onClick={() => navigate("/tasks")}
+                  className={`${sidebarExpanded ? "w-full justify-start gap-2" : "h-10 w-10"} text-muted-foreground hover:text-foreground hover:bg-muted ${
+                    isActive("/tasks") ? "text-foreground bg-muted" : ""
+                  }`}
+                >
+                  <ListTodo className="h-5 w-5" />
+                  {sidebarExpanded && <span>All Tasks</span>}
+                </Button>
+              </TooltipTrigger>
+              {!sidebarExpanded && <TooltipContent side="right">All Tasks</TooltipContent>}
+            </Tooltip>
+
             {/* Check-in */}
             <Tooltip>
               <TooltipTrigger asChild>
