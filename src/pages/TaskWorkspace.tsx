@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,7 @@ interface WorkSession {
 const TaskWorkspace = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [task, setTask] = useState<Task | null>(null);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]);
@@ -111,6 +112,14 @@ const TaskWorkspace = () => {
     loadWorkSessions();
     loadTaskProofs();
   }, [taskId]);
+
+  // Auto-start session if navigated from Focus page
+  useEffect(() => {
+    if (searchParams.get("autoStart") === "true" && task && !isWorking) {
+      startSession();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, task, isWorking]);
 
   const loadTask = async () => {
     if (!taskId) return;
