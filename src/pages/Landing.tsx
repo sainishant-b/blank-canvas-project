@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import {
   Crosshair,
   Timer,
   Brain,
