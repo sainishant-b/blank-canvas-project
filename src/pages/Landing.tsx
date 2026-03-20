@@ -3,6 +3,12 @@ import { Button } from "@/components/ui/button";
 import { DottedSurface } from "@/components/ui/dotted-surface";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Crosshair,
   Timer,
   Brain,
@@ -13,8 +19,16 @@ import {
   Shield,
   BarChart3,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+import featureFocus from "@/assets/feature-focus.jpg";
+import featureTimer from "@/assets/feature-timer.jpg";
+import featurePriority from "@/assets/feature-priority.jpg";
+import featureGoals from "@/assets/feature-goals.jpg";
+import featureInsights from "@/assets/feature-insights.jpg";
+import featureDistractionFree from "@/assets/feature-distraction-free.jpg";
 
 const Landing = () => {
   const navigate = useNavigate();
