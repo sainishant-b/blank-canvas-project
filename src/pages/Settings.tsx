@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { loadPomodoroSettings, savePomodoroSettings, type PomodoroSettings } from "@/hooks/useWorkSessionTimer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
