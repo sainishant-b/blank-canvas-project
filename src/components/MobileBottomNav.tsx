@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Clock, Target, Calendar, BarChart3, Settings } from "lucide-react";
+import { Clock, Target, Calendar, BarChart3, Settings, Crosshair } from "lucide-react";
 
 interface MobileBottomNavProps {
   onCheckIn: () => void;
