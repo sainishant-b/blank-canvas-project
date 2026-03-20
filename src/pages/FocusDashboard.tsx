@@ -20,6 +20,7 @@ const FocusDashboard = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showProofDialog, setShowProofDialog] = useState(false);
   const [proofTask, setProofTask] = useState<any>(null);
