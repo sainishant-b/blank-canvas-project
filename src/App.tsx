@@ -108,7 +108,8 @@ const App = () => (
         <NavigationHandler />
         <AppLayout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<FocusDashboard />} />
+            <Route path="/tasks" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/calendar" element={<CalendarView />} />
