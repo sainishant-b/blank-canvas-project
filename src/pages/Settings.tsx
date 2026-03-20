@@ -375,8 +375,52 @@ const Settings = () => {
         <Card>
           <CardHeader>
             <CardTitle className="font-heading flex items-center gap-2">
-              <RefreshCw className="h-5 w-5" />
-              Check-in Frequency
+              <Timer className="h-5 w-5" />
+              Pomodoro Timer
+            </CardTitle>
+            <CardDescription>
+              Set your focus and break durations for work sessions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="work-duration">Focus Duration (minutes)</Label>
+                <Input
+                  id="work-duration"
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={pomodoroSettings.workMinutes}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(120, parseInt(e.target.value) || 25));
+                    const updated = { ...pomodoroSettings, workMinutes: val };
+                    setPomodoroSettingsState(updated);
+                    savePomodoroSettings(updated);
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="break-duration">Break Duration (minutes)</Label>
+                <Input
+                  id="break-duration"
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={pomodoroSettings.breakMinutes}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(60, parseInt(e.target.value) || 5));
+                    const updated = { ...pomodoroSettings, breakMinutes: val };
+                    setPomodoroSettingsState(updated);
+                    savePomodoroSettings(updated);
+                  }}
+                />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Work for {pomodoroSettings.workMinutes} minutes, then take a {pomodoroSettings.breakMinutes}-minute break. Changes apply to new sessions.
+            </p>
+          </CardContent>
             </CardTitle>
             <CardDescription>
               How often would you like to be prompted for check-ins during work hours?
