@@ -140,7 +140,7 @@ const FocusDashboard = () => {
 
   return (
     <div className="flex-1 overflow-auto">
-      <div className="mx-auto max-w-lg px-4 py-6 md:py-10 flex flex-col gap-5 min-h-[calc(100vh-80px)]">
+      <div className="mx-auto max-w-lg px-3 sm:px-4 py-4 sm:py-6 md:py-10 flex flex-col gap-4 sm:gap-5 min-h-[calc(100vh-120px)] md:min-h-[calc(100vh-80px)]">
         {/* Focus Card */}
         {loading ? (
           <div className="flex items-center justify-center min-h-[40vh]">
@@ -158,8 +158,7 @@ const FocusDashboard = () => {
         {focusTask && !loading && (
           <Button
             onClick={handleStartSession}
-            className="w-full h-16 text-lg font-heading font-bold rounded-2xl bg-primary text-primary-foreground hover:bg-primary-hover shadow-[var(--shadow-lg)] transition-all"
-            style={{ minHeight: 64 }}
+            className="w-full h-14 sm:h-16 text-base sm:text-lg font-heading font-bold rounded-2xl bg-primary text-primary-foreground hover:bg-primary-hover shadow-[var(--shadow-lg)] transition-all active:scale-[0.97]"
           >
             <Play className="h-5 w-5 mr-2 fill-current" />
             START FOCUS SESSION
@@ -181,12 +180,12 @@ const FocusDashboard = () => {
 
         {/* Quick Actions */}
         {!loading && (
-          <div className="flex items-center justify-center pb-4">
+          <div className="flex items-center justify-center pb-16 sm:pb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={handlePickTask}
-              className="text-muted-foreground text-xs gap-1.5"
+              className="text-muted-foreground text-xs gap-1.5 active:scale-[0.96]"
             >
               <MousePointerClick className="h-3.5 w-3.5" />
               Choose Task

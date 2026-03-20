@@ -31,14 +31,14 @@ export default function TaskPickerDialog({
 }: TaskPickerDialogProps) {
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md mx-auto rounded-2xl">
         <DialogHeader>
-          <DialogTitle className="font-heading">Choose Focus Task</DialogTitle>
+          <DialogTitle className="font-heading text-base sm:text-lg">Choose Focus Task</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-1.5 pr-2">
+        <ScrollArea className="max-h-[50vh] sm:max-h-[60vh]">
+          <div className="space-y-1 sm:space-y-1.5 pr-2">
             {tasks.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-8">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center py-8">
                 No active tasks available
               </p>
             )}
@@ -49,27 +49,27 @@ export default function TaskPickerDialog({
                   onSelect(task);
                   onClose();
                 }}
-                className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-accent ${
+                className={`w-full flex items-center gap-2.5 sm:gap-3 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-left transition-colors hover:bg-accent active:scale-[0.98] ${
                   task.id === currentFocusId
                     ? "bg-accent border border-border"
                     : "border border-transparent"
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-xs sm:text-sm font-medium text-foreground truncate">
                     {task.title}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
                     <Badge
                       variant="outline"
-                      className={`text-[10px] px-1.5 py-0 ${
+                      className={`text-[9px] sm:text-[10px] px-1.5 py-0 ${
                         priorityColors[task.priority] || ""
                       }`}
                     >
                       {task.priority}
                     </Badge>
                     {task.estimated_duration && (
-                      <span className="flex items-center gap-1 text-muted-foreground text-[10px]">
+                      <span className="flex items-center gap-1 text-muted-foreground text-[9px] sm:text-[10px]">
                         <Clock className="h-2.5 w-2.5" />
                         {task.estimated_duration}m
                       </span>
