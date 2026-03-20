@@ -136,7 +136,7 @@ const TaskWorkspace = () => {
 
     if (error) {
       toast.error("Failed to load task");
-      navigate("/");
+      navigate("/focus");
       return;
     }
 
@@ -400,7 +400,7 @@ const TaskWorkspace = () => {
 
     await logTaskChange("status", task.status, "completed", "Task marked as completed");
     toast.success("Task completed! 🎉");
-    navigate("/");
+    navigate("/focus");
   };
 
   const deleteTask = async () => {
@@ -411,7 +411,7 @@ const TaskWorkspace = () => {
       return;
     }
     toast.success("Task deleted");
-    navigate("/");
+    navigate("/focus");
   };
 
   const priorityColors = {
@@ -620,7 +620,7 @@ const TaskWorkspace = () => {
           <div className="p-4 md:p-6 space-y-4 md:space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <Button onClick={() => navigate("/")} variant="ghost" size="sm" className="rounded-xl -ml-2">
+              <Button onClick={() => navigate("/focus")} variant="ghost" size="sm" className="rounded-xl -ml-2">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>

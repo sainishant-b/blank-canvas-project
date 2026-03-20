@@ -316,9 +316,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <Button
                   variant="ghost"
                   size={sidebarExpanded ? "default" : "icon"}
-                  onClick={() => navigate("/")}
-                  className={`${sidebarExpanded ? "w-full justify-start gap-2" : "h-10 w-10"} text-muted-foreground hover:text-foreground hover:bg-muted ${
-                    isActive("/") ? "text-foreground bg-muted" : ""
+                   onClick={() => navigate("/focus")}
+                   className={`${sidebarExpanded ? "w-full justify-start gap-2" : "h-10 w-10"} text-muted-foreground hover:text-foreground hover:bg-muted ${
+                     isActive("/focus") ? "text-foreground bg-muted" : ""
                   }`}
                 >
                   <LayoutDashboard className="h-5 w-5" />

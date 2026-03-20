@@ -108,11 +108,11 @@ const App = () => (
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavigationHandler />
         <Routes>
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Landing />} />
           <Route path="*" element={
             <AppLayout>
               <Routes>
-                <Route path="/" element={<FocusDashboard />} />
+                <Route path="/focus" element={<FocusDashboard />} />
                 <Route path="/tasks" element={<Dashboard />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/settings" element={<Settings />} />
