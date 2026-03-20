@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, List, RefreshCw, Play } from "lucide-react";
+import { Plus, List, RefreshCw, Play, MousePointerClick } from "lucide-react";
 import { toast } from "sonner";
 import { isPast } from "date-fns";
 import FocusCard from "@/components/FocusCard";
@@ -185,17 +185,24 @@ const FocusDashboard = () => {
 
         {/* Quick Actions */}
         {!loading && (
-          <div className="flex items-center justify-center gap-3 pb-4">
+          <div className="flex items-center justify-center gap-3 pb-4 flex-wrap">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setShowTaskDialog(true);
-              }}
+              onClick={() => setShowTaskDialog(true)}
               className="text-muted-foreground text-xs gap-1.5"
             >
               <Plus className="h-3.5 w-3.5" />
               Add Task
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handlePickTask}
+              className="text-muted-foreground text-xs gap-1.5"
+            >
+              <MousePointerClick className="h-3.5 w-3.5" />
+              Choose Task
             </Button>
             <Button
               variant="ghost"
@@ -211,7 +218,6 @@ const FocusDashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  // Cycle to next task
                   const currentIndex = activeTasks.findIndex((t) => t.id === focusTask.id);
                   const nextIndex = (currentIndex + 1) % activeTasks.length;
                   setFocusTaskId(activeTasks[nextIndex]?.id || null);
