@@ -328,7 +328,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {!sidebarExpanded && <TooltipContent side="right">Focus</TooltipContent>}
             </Tooltip>
 
-            {/* Tasks */}
+            {/* Dashboard */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -340,10 +340,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   }`}
                 >
                   <ListTodo className="h-5 w-5" />
-                  {sidebarExpanded && <span>All Tasks</span>}
+                  {sidebarExpanded && <span>Dashboard</span>}
                 </Button>
               </TooltipTrigger>
-              {!sidebarExpanded && <TooltipContent side="right">All Tasks</TooltipContent>}
+              {!sidebarExpanded && <TooltipContent side="right">Dashboard</TooltipContent>}
             </Tooltip>
 
             {/* Check-in */}

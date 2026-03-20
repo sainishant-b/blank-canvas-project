@@ -204,7 +204,7 @@ const FocusDashboard = () => {
               className="text-muted-foreground text-xs gap-1.5"
             >
               <List className="h-3.5 w-3.5" />
-              View All Tasks
+              Dashboard
             </Button>
             {focusTask && (
               <Button
