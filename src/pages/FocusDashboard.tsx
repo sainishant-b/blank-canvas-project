@@ -8,6 +8,7 @@ import { isPast } from "date-fns";
 import FocusCard from "@/components/FocusCard";
 import UpNextSection from "@/components/UpNextSection";
 import TaskDialog from "@/components/TaskDialog";
+import TaskPickerDialog from "@/components/TaskPickerDialog";
 import ProofUploadDialog from "@/components/ProofUploadDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { invalidateRecommendations } from "@/utils/recommendationCache";
