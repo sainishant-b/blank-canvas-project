@@ -143,40 +143,48 @@ const features = [
     title: "Focus Mode",
     description:
       "See only your single most important task. No lists, no overwhelm — just clarity.",
+    screenshot: featureFocus,
   },
   {
     icon: Timer,
     title: "Pomodoro Timer",
     description:
       "Built-in 25/5 focus sessions. Start with one tap and ride the momentum.",
+    screenshot: featureTimer,
   },
   {
     icon: Brain,
     title: "Smart Prioritization",
     description:
       "Automatically surfaces what matters based on deadlines, priority, and your energy.",
+    screenshot: featurePriority,
   },
   {
     icon: Target,
     title: "Goal Tracking",
     description:
       "Break big goals into milestones. Watch progress stack up over time.",
+    screenshot: featureGoals,
   },
   {
     icon: BarChart3,
     title: "Insights",
     description:
       "Track your streaks, completion rates, and focus patterns to build better habits.",
+    screenshot: featureInsights,
   },
   {
     icon: Shield,
     title: "Distraction-Free",
     description:
       "No social feeds, no badges spam. Designed to protect your attention, not steal it.",
+    screenshot: featureDistractionFree,
   },
 ];
 
 function FeaturesSection() {
+  const [selectedFeature, setSelectedFeature] = useState<typeof features[number] | null>(null);
+
   return (
     <section id="features" className="py-20 sm:py-28 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto">
