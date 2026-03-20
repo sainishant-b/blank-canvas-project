@@ -113,6 +113,14 @@ const TaskWorkspace = () => {
     loadTaskProofs();
   }, [taskId]);
 
+  // Auto-start session if navigated from Focus page
+  useEffect(() => {
+    if (searchParams.get("autoStart") === "true" && task && !isWorking) {
+      startSession();
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, task, isWorking]);
+
   const loadTask = async () => {
     if (!taskId) return;
     const { data, error } = await supabase
