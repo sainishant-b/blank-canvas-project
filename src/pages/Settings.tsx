@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Moon, Sun, User, Bell, BellOff, RefreshCw, Smartphone, Mail } from "lucide-react";
+import { Clock, Moon, Sun, User, Bell, BellOff, RefreshCw, Smartphone, Mail, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNativePushNotifications } from "@/hooks/useNativePushNotifications";
