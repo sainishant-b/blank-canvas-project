@@ -25,7 +25,9 @@ import {
   Tag,
   Camera,
   Star,
-  Trash2
+  Trash2,
+  SkipForward,
+  Coffee
 } from "lucide-react";
 import CheckInModal from "@/components/CheckInModal";
 import SubtaskList from "@/components/SubtaskList";
@@ -90,8 +92,11 @@ const TaskWorkspace = () => {
     isWorking,
     sessionStart,
     elapsedSeconds,
+    remainingSeconds,
+    phase,
     startSession,
     endSession,
+    skipPhase,
     formatTime,
     formatTimeReadable,
   } = useWorkSessionTimer(taskId);
@@ -437,9 +442,24 @@ const TaskWorkspace = () => {
             <CardContent className="p-6">
               <div className="text-center space-y-3">
                 <h2 className="font-heading text-lg font-bold tracking-tight">{task.title}</h2>
-                <p className="text-xs text-muted-foreground">Session in progress</p>
+                <div className="flex items-center justify-center gap-2">
+                  {phase === "work" ? (
+                    <Badge variant="default" className="rounded-lg text-xs">
+                      <Timer className="h-3 w-3 mr-1" />
+                      Focus Time
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="rounded-lg text-xs">
+                      <Coffee className="h-3 w-3 mr-1" />
+                      Break Time
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-5xl font-bold font-mono tracking-wider">
-                  {formatTime(elapsedSeconds)}
+                  {formatTime(remainingSeconds)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Total: {formatTime(elapsedSeconds)}
                 </p>
                 <div className="flex gap-3 justify-center pt-2">
                   <Button 
@@ -450,6 +470,15 @@ const TaskWorkspace = () => {
                   >
                     <StopCircle className="h-5 w-5 mr-2" />
                     End Session
+                  </Button>
+                  <Button 
+                    onClick={skipPhase} 
+                    className="rounded-xl px-4" 
+                    variant="ghost"
+                    size="lg"
+                  >
+                    <SkipForward className="h-5 w-5 mr-1" />
+                    Skip
                   </Button>
                   <Button 
                     onClick={() => setShowCheckIn(true)} 

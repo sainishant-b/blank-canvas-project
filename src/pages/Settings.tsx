@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { loadPomodoroSettings, savePomodoroSettings, type PomodoroSettings } from "@/hooks/useWorkSessionTimer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Moon, Sun, User, Bell, BellOff, RefreshCw, Smartphone, Mail } from "lucide-react";
+import { Clock, Moon, Sun, User, Bell, BellOff, RefreshCw, Smartphone, Mail, Timer } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNativePushNotifications } from "@/hooks/useNativePushNotifications";
@@ -29,6 +30,7 @@ const Settings = () => {
   const [emailOverdueAlerts, setEmailOverdueAlerts] = useState(true);
   const [emailWeeklyReports, setEmailWeeklyReports] = useState(true);
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [pomodoroSettings, setPomodoroSettingsState] = useState<PomodoroSettings>(loadPomodoroSettings);
 
   const isEmbeddedPreview = (() => {
     try {
@@ -367,6 +369,57 @@ const Settings = () => {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading flex items-center gap-2">
+              <Timer className="h-5 w-5" />
+              Pomodoro Timer
+            </CardTitle>
+            <CardDescription>
+              Set your focus and break durations for work sessions
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="work-duration">Focus Duration (minutes)</Label>
+                <Input
+                  id="work-duration"
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={pomodoroSettings.workMinutes}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(120, parseInt(e.target.value) || 25));
+                    const updated = { ...pomodoroSettings, workMinutes: val };
+                    setPomodoroSettingsState(updated);
+                    savePomodoroSettings(updated);
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="break-duration">Break Duration (minutes)</Label>
+                <Input
+                  id="break-duration"
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={pomodoroSettings.breakMinutes}
+                  onChange={(e) => {
+                    const val = Math.max(1, Math.min(60, parseInt(e.target.value) || 5));
+                    const updated = { ...pomodoroSettings, breakMinutes: val };
+                    setPomodoroSettingsState(updated);
+                    savePomodoroSettings(updated);
+                  }}
+                />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Work for {pomodoroSettings.workMinutes} minutes, then take a {pomodoroSettings.breakMinutes}-minute break. Changes apply to new sessions.
+            </p>
           </CardContent>
         </Card>
 
