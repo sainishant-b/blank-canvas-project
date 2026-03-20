@@ -181,16 +181,7 @@ const FocusDashboard = () => {
 
         {/* Quick Actions */}
         {!loading && (
-          <div className="flex items-center justify-center gap-3 pb-4 flex-wrap">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowTaskDialog(true)}
-              className="text-muted-foreground text-xs gap-1.5"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add Task
-            </Button>
+          <div className="flex items-center justify-center pb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -200,30 +191,6 @@ const FocusDashboard = () => {
               <MousePointerClick className="h-3.5 w-3.5" />
               Choose Task
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/tasks")}
-              className="text-muted-foreground text-xs gap-1.5"
-            >
-              <List className="h-3.5 w-3.5" />
-              Dashboard
-            </Button>
-            {focusTask && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  const currentIndex = activeTasks.findIndex((t) => t.id === focusTask.id);
-                  const nextIndex = (currentIndex + 1) % activeTasks.length;
-                  setFocusTaskId(activeTasks[nextIndex]?.id || null);
-                }}
-                className="text-muted-foreground text-xs gap-1.5"
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Change Focus
-              </Button>
-            )}
           </div>
         )}
       </div>
