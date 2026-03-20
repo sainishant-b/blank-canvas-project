@@ -101,7 +101,7 @@ const FocusDashboard = () => {
 
   const handleStartSession = () => {
     if (focusTask) {
-      navigate(`/task/${focusTask.id}`);
+      navigate(`/task/${focusTask.id}?autoStart=true`);
     }
   };
 
