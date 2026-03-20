@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { isPast, format } from "date-fns";
 import PrioritySection from "@/components/PrioritySection";
@@ -406,13 +406,25 @@ const Dashboard = () => {
               Active Tasks
               {activeTasks.length > 0 && <span className="text-muted-foreground font-normal text-xs md:text-sm ml-1.5 md:ml-2">({activeTasks.length})</span>}
             </h2>
-            <Button onClick={() => {
-            setSelectedTask(null);
-            setShowTaskDialog(true);
-          }} size="sm" className="h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-lg hidden sm:flex">
-              <Plus className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
-              New Task
-            </Button>
+            <div className="flex items-center gap-1.5">
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/insights")}
+                  className="h-7 px-2 text-muted-foreground"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                </Button>
+              )}
+              <Button onClick={() => {
+                setSelectedTask(null);
+                setShowTaskDialog(true);
+              }} size="sm" className="h-7 md:h-8 px-2 md:px-3 text-[10px] md:text-xs rounded-lg hidden sm:flex">
+                <Plus className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
+                New Task
+              </Button>
+            </div>
           </div>
 
           {/* Task list */}
