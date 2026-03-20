@@ -77,6 +77,7 @@ interface WorkSession {
 const TaskWorkspace = () => {
   const { taskId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [task, setTask] = useState<Task | null>(null);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [taskHistory, setTaskHistory] = useState<TaskHistory[]>([]);
