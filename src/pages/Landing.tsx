@@ -48,10 +48,10 @@ function HeroSection({ onGetStarted }: { onGetStarted: () => void }) {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <DottedSurface className="opacity-30" />
+      <DottedSurface className="opacity-70" />
 
-      {/* Overlay gradient for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background pointer-events-none z-[1]" />
+      {/* Subtle vignette for text readability */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,hsl(var(--background))_80%)] pointer-events-none z-[1]" />
 
       <div className="relative z-[2] flex flex-col items-center text-center px-4 sm:px-6 max-w-3xl mx-auto">
         <div
