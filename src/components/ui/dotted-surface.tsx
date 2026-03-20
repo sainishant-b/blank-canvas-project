@@ -22,9 +22,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-    const SEPARATION = 150;
-    const AMOUNTX = 40;
-    const AMOUNTY = 60;
+    const SEPARATION = 120;
+    const AMOUNTX = 50;
+    const AMOUNTY = 70;
 
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xffffff, 2000, 10000);
@@ -35,7 +35,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       1,
       10000,
     );
-    camera.position.set(0, 355, 1220);
+    camera.position.set(0, 280, 900);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -58,9 +58,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
         positions.push(x, y, z);
         if (isDark) {
-          colors.push(200, 200, 200);
+          colors.push(255, 255, 255);
         } else {
-          colors.push(0, 0, 0);
+          colors.push(30, 30, 30);
         }
       }
     }
@@ -69,10 +69,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
     const material = new THREE.PointsMaterial({
-      size: 8,
+      size: 10,
       vertexColors: true,
       transparent: true,
-      opacity: 0.8,
+      opacity: 1,
       sizeAttenuation: true,
     });
 
