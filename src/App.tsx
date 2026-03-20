@@ -18,6 +18,7 @@ import Goals from "./pages/Goals";
 import GoalDetail from "./pages/GoalDetail";
 import NotFound from "./pages/NotFound";
 import DataExport from "./pages/DataExport";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
@@ -106,21 +107,26 @@ const App = () => (
       <Sonner />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <NavigationHandler />
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<FocusDashboard />} />
-            <Route path="/tasks" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/calendar" element={<CalendarView />} />
-            <Route path="/insights" element={<Insights />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/goals/:goalId" element={<GoalDetail />} />
-            <Route path="/task/:taskId" element={<TaskWorkspace />} />
-            <Route path="/export" element={<DataExport />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <Routes>
+          <Route path="/landing" element={<Landing />} />
+          <Route path="*" element={
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<FocusDashboard />} />
+                <Route path="/tasks" element={<Dashboard />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/calendar" element={<CalendarView />} />
+                <Route path="/insights" element={<Insights />} />
+                <Route path="/goals" element={<Goals />} />
+                <Route path="/goals/:goalId" element={<GoalDetail />} />
+                <Route path="/task/:taskId" element={<TaskWorkspace />} />
+                <Route path="/export" element={<DataExport />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
