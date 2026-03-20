@@ -35,7 +35,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success("Account created! Welcome aboard! 🎉");
-      navigate("/");
+      navigate("/focus");
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Failed to create account";
       toast.error(msg);
