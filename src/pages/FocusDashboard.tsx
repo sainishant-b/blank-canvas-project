@@ -235,6 +235,14 @@ const FocusDashboard = () => {
         task={null}
       />
 
+      <TaskPickerDialog
+        open={showTaskPicker}
+        onClose={() => setShowTaskPicker(false)}
+        tasks={activeTasks}
+        currentFocusId={focusTask?.id || null}
+        onSelect={handleSelectFocus}
+      />
+
       {showProofDialog && proofTask && (
         <ProofUploadDialog
           open={showProofDialog}
