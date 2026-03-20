@@ -181,12 +181,22 @@ function FeaturesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {features.map((f, i) => (
             <ScrollReveal key={f.title} delay={i * 80}>
-              <div className="group rounded-2xl border border-border bg-card p-5 sm:p-6 hover:shadow-[var(--shadow-md)] transition-shadow duration-300">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-4 group-hover:bg-accent-orange/10 transition-colors duration-300">
-                  <f.icon className="h-5 w-5 text-foreground group-hover:text-accent-orange transition-colors duration-300" />
+              <div className="relative rounded-2xl border border-border bg-card p-5 sm:p-6 min-h-[10rem]">
+                <GlowingEffect
+                  spread={40}
+                  glow
+                  disabled={false}
+                  proximity={64}
+                  inactiveZone={0.01}
+                  borderWidth={2}
+                />
+                <div className="relative z-10">
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-4">
+                    <f.icon className="h-5 w-5 text-foreground" />
+                  </div>
+                  <h3 className="font-heading text-base font-semibold mb-1.5">{f.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
                 </div>
-                <h3 className="font-heading text-base font-semibold mb-1.5">{f.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{f.description}</p>
               </div>
             </ScrollReveal>
           ))}
