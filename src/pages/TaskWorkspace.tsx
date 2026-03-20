@@ -400,7 +400,7 @@ const TaskWorkspace = () => {
 
     await logTaskChange("status", task.status, "completed", "Task marked as completed");
     toast.success("Task completed! 🎉");
-    navigate("/");
+    navigate("/focus");
   };
 
   const deleteTask = async () => {
