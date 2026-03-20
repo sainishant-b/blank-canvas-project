@@ -135,13 +135,7 @@ const FocusDashboard = () => {
   };
 
   const handlePickTask = () => {
-    // Navigate to full task list on old dashboard-like view
-    // For now, just pick the first available
-    if (activeTasks.length > 0) {
-      setFocusTaskId(activeTasks[0].id);
-    } else {
-      setShowTaskDialog(true);
-    }
+    setShowTaskPicker(true);
   };
 
   return (
