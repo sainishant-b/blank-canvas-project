@@ -8,6 +8,7 @@ import { isPast } from "date-fns";
 import FocusCard from "@/components/FocusCard";
 import UpNextSection from "@/components/UpNextSection";
 import TaskDialog from "@/components/TaskDialog";
+import TaskPickerDialog from "@/components/TaskPickerDialog";
 import ProofUploadDialog from "@/components/ProofUploadDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { invalidateRecommendations } from "@/utils/recommendationCache";
@@ -20,6 +21,7 @@ const FocusDashboard = () => {
   const [tasks, setTasks] = useState<any[]>([]);
   const [focusTaskId, setFocusTaskId] = useState<string | null>(null);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [showTaskPicker, setShowTaskPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showProofDialog, setShowProofDialog] = useState(false);
   const [proofTask, setProofTask] = useState<any>(null);
@@ -133,13 +135,7 @@ const FocusDashboard = () => {
   };
 
   const handlePickTask = () => {
-    // Navigate to full task list on old dashboard-like view
-    // For now, just pick the first available
-    if (activeTasks.length > 0) {
-      setFocusTaskId(activeTasks[0].id);
-    } else {
-      setShowTaskDialog(true);
-    }
+    setShowTaskPicker(true);
   };
 
   return (
@@ -237,6 +233,14 @@ const FocusDashboard = () => {
         onClose={() => setShowTaskDialog(false)}
         onSave={handleSaveTask}
         task={null}
+      />
+
+      <TaskPickerDialog
+        open={showTaskPicker}
+        onClose={() => setShowTaskPicker(false)}
+        tasks={activeTasks}
+        currentFocusId={focusTask?.id || null}
+        onSelect={handleSelectFocus}
       />
 
       {showProofDialog && proofTask && (
