@@ -136,7 +136,7 @@ const TaskWorkspace = () => {
 
     if (error) {
       toast.error("Failed to load task");
-      navigate("/");
+      navigate("/focus");
       return;
     }
 
