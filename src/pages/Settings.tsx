@@ -421,6 +421,13 @@ const Settings = () => {
               Work for {pomodoroSettings.workMinutes} minutes, then take a {pomodoroSettings.breakMinutes}-minute break. Changes apply to new sessions.
             </p>
           </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading flex items-center gap-2">
+              <RefreshCw className="h-5 w-5" />
+              Check-in Frequency
             </CardTitle>
             <CardDescription>
               How often would you like to be prompted for check-ins during work hours?
