@@ -18,6 +18,7 @@ import Goals from "./pages/Goals";
 import GoalDetail from "./pages/GoalDetail";
 import NotFound from "./pages/NotFound";
 import DataExport from "./pages/DataExport";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
