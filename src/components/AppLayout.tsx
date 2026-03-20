@@ -12,7 +12,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  PanelLeftClose
+  PanelLeftClose,
+  ListTodo
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
