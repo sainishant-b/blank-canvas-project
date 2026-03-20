@@ -51,8 +51,8 @@ export default function TaskPickerDialog({
                 }}
                 className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-accent ${
                   task.id === currentFocusId
-                    ? "bg-accent ring-1 ring-ring"
-                    : ""
+                    ? "bg-accent border border-border"
+                    : "border border-transparent"
                 }`}
               >
                 <div className="min-w-0 flex-1">
