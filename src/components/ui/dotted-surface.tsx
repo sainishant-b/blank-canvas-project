@@ -35,7 +35,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       1,
       10000,
     );
-    camera.position.set(0, 355, 1220);
+    camera.position.set(0, 280, 900);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
