@@ -419,6 +419,162 @@ const TaskWorkspace = () => {
 
   if (!task) return null;
 
+  // FOCUSED SESSION MODE
+  if (isWorking) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Progress bar at top */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-muted">
+          <div 
+            className="h-full bg-foreground transition-all duration-500 ease-out"
+            style={{ width: `${task.progress}%` }}
+          />
+        </div>
+
+        <div className="max-w-2xl mx-auto px-4 py-6 md:py-10 space-y-6">
+          {/* Timer Card */}
+          <Card className="rounded-xl border-0 shadow-sm bg-muted/30">
+            <CardContent className="p-6">
+              <div className="text-center space-y-3">
+                <h2 className="font-heading text-lg font-bold tracking-tight">{task.title}</h2>
+                <p className="text-xs text-muted-foreground">Session in progress</p>
+                <p className="text-5xl font-bold font-mono tracking-wider">
+                  {formatTime(elapsedSeconds)}
+                </p>
+                <div className="flex gap-3 justify-center pt-2">
+                  <Button 
+                    onClick={handleEndSessionClick} 
+                    className="rounded-xl px-6" 
+                    variant="outline"
+                    size="lg"
+                  >
+                    <StopCircle className="h-5 w-5 mr-2" />
+                    End Session
+                  </Button>
+                  <Button 
+                    onClick={() => setShowCheckIn(true)} 
+                    className="rounded-xl px-6"
+                    size="lg"
+                  >
+                    Check-in
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Description */}
+          <Card className="rounded-xl border-0 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                Description
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!isEditingDescription ? (
+                <div 
+                  className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors min-h-[60px]"
+                  onClick={() => setIsEditingDescription(true)}
+                >
+                  {task.description || "Click to add a description..."}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Textarea
+                    value={editedDescription}
+                    onChange={(e) => setEditedDescription(e.target.value)}
+                    rows={4}
+                    className="rounded-xl"
+                    placeholder="Add a detailed description..."
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={saveDescription} size="sm" className="rounded-xl">
+                      <Save className="h-4 w-4 mr-1" />
+                      Save
+                    </Button>
+                    <Button onClick={() => { setEditedDescription(task.description || ""); setIsEditingDescription(false); }} variant="ghost" size="sm" className="rounded-xl">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Subtasks */}
+          <Card className="rounded-xl border-0 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                Subtasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SubtaskList taskId={task.id} />
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          <Card className="rounded-xl border-0 shadow-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!isEditingNotes ? (
+                <div 
+                  className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors min-h-[80px] whitespace-pre-wrap"
+                  onClick={() => setIsEditingNotes(true)}
+                >
+                  {task.notes || "Click to add notes..."}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Textarea
+                    value={editedNotes}
+                    onChange={(e) => setEditedNotes(e.target.value)}
+                    rows={6}
+                    className="rounded-xl font-mono text-sm"
+                    placeholder="Add notes, ideas, links..."
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button onClick={saveNotes} size="sm" className="rounded-xl">
+                      <Save className="h-4 w-4 mr-1" />
+                      Save
+                    </Button>
+                    <Button onClick={() => { setEditedNotes(task.notes || ""); setIsEditingNotes(false); }} variant="ghost" size="sm" className="rounded-xl">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <CheckInModal
+          open={showCheckIn}
+          onClose={() => setShowCheckIn(false)}
+          question="How's your progress on this task?"
+          onSubmit={handleCheckInSubmit}
+        />
+
+        <EndSessionModal
+          open={showEndSession}
+          onClose={() => setShowEndSession(false)}
+          durationSeconds={elapsedSeconds}
+          onSave={handleEndSessionSave}
+        />
+      </div>
+    );
+  }
+
+  // FULL TASK PAGE (when no session is active)
   return (
     <div className="min-h-screen bg-background">
       {/* Progress bar at top */}
@@ -450,46 +606,17 @@ const TaskWorkspace = () => {
               </div>
             </div>
 
-            {/* Work Session Button - MOVED TO TOP */}
+            {/* Work Session Button */}
             <Card className="rounded-xl border-0 shadow-sm bg-muted/30">
               <CardContent className="p-4">
-                {!isWorking ? (
-                  <Button 
-                    onClick={handleStartSession} 
-                    className="w-full rounded-xl bg-foreground text-background"
-                    size="lg"
-                  >
-                    <PlayCircle className="h-5 w-5 mr-2" />
-                    Start Work Session
-                  </Button>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="text-center">
-                      <p className="text-xs text-muted-foreground mb-1">Session in progress</p>
-                      <p className="text-3xl font-bold font-mono tracking-wider">
-                        {formatTime(elapsedSeconds)}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        onClick={handleEndSessionClick} 
-                        className="flex-1 rounded-xl" 
-                        variant="outline"
-                        size="sm"
-                      >
-                        <StopCircle className="h-4 w-4 mr-1" />
-                        End
-                      </Button>
-                      <Button 
-                        onClick={() => setShowCheckIn(true)} 
-                        className="flex-1 rounded-xl"
-                        size="sm"
-                      >
-                        Check-in
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <Button 
+                  onClick={handleStartSession} 
+                  className="w-full rounded-xl bg-foreground text-background"
+                  size="lg"
+                >
+                  <PlayCircle className="h-5 w-5 mr-2" />
+                  Start Work Session
+                </Button>
               </CardContent>
             </Card>
 
