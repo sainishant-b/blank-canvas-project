@@ -151,7 +151,7 @@ export default function CalendarView() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/focus")}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>

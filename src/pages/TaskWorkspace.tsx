@@ -620,7 +620,7 @@ const TaskWorkspace = () => {
           <div className="p-4 md:p-6 space-y-4 md:space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-              <Button onClick={() => navigate("/")} variant="ghost" size="sm" className="rounded-xl -ml-2">
+              <Button onClick={() => navigate("/focus")} variant="ghost" size="sm" className="rounded-xl -ml-2">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>

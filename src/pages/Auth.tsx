@@ -57,7 +57,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success("Welcome back! 👋");
-      navigate("/");
+      navigate("/focus");
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : "Failed to sign in";
       toast.error(msg);
