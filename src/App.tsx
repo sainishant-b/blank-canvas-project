@@ -8,6 +8,7 @@ import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
+import FocusDashboard from "./pages/FocusDashboard";
 import Auth from "./pages/Auth";
 import Settings from "./pages/Settings";
 import TaskWorkspace from "./pages/TaskWorkspace";
