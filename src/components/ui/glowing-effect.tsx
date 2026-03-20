@@ -1,5 +1,3 @@
-"use client";
-
 import { memo, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { animate } from "motion/react";
@@ -33,6 +31,11 @@ const GlowingEffect = memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const lastPosition = useRef({ x: 0, y: 0 });
     const animationFrameRef = useRef<number>(0);
+
+    const gradientValue =
+      variant === "white"
+        ? `repeating-conic-gradient(from calc(var(--start) * 1deg), #fff 0%, #fff 5%, transparent 5%, transparent 40%, #fff 50%)`
+        : `repeating-conic-gradient(from calc(var(--start) * 1deg), #5B8DEF 0%, #F3A151 5%, #E86D82 10%, #A35AED 15%, #5B8DEF 20%)`;
 
     const handleMove = useCallback(
       (e?: MouseEvent | { x: number; y: number }) => {
@@ -78,7 +81,7 @@ const GlowingEffect = memo(
 
           const currentAngle =
             parseFloat(element.style.getPropertyValue("--start")) || 0;
-          let targetAngle =
+          const targetAngle =
             (180 * Math.atan2(mouseY - center[1], mouseX - center[0])) /
               Math.PI +
             90;
@@ -118,84 +121,46 @@ const GlowingEffect = memo(
       };
     }, [handleMove, disabled]);
 
-    return (
-      <>
-        <div
-          className={cn(
-            "pointer-events-none absolute -inset-px rounded-[inherit] opacity-0 transition-opacity duration-300",
-            "opacity-[var(--active)]"
-          )}
-          style={
-            {
-              "--blur": `${blur}px`,
-              "--spread": spread,
-              "--start": "0",
-              "--active": "0",
-              "--glowingeffect-border-width": `${borderWidth}px`,
-              "--repeating-conic-gradient-times": "5",
-              "--gradient":
-                variant === "white"
-                  ? `repeating-conic-gradient(
-                      from calc(var(--start) * 1deg),
-                      #fff 0%,
-                      #fff 5%,
-                      transparent 5%,
-                      transparent 40%,
-                      #fff 50%
-                    )`
-                  : `repeating-conic-gradient(
-                      from calc(var(--start) * 1deg),
-                      #5B8DEF 0%,
-                      #F3A151 5%,
-                      #E86D82 10%,
-                      #A35AED 15%,
-                      #5B8DEF 20%
-                    )`,
-            } as React.CSSProperties
-          }
-          ref={containerRef}
-        />
+    if (disabled) return null;
 
-        <div
-          className={cn(
-            "pointer-events-none absolute -inset-px rounded-[inherit]",
-            "bg-[var(--gradient)] bg-[length:300%_300%]",
-            "[mask-composite:exclude] [mask:linear-gradient(#000_0_0)_content-box,linear-gradient(#000_0_0)]",
-            `p-[var(--glowingeffect-border-width)]`,
-            blur > 0 && "blur-[var(--blur)]",
-            className,
-            disabled && "!hidden"
-          )}
-        >
+    return (
+      <div
+        ref={containerRef}
+        className={cn(
+          "pointer-events-none absolute -inset-px rounded-[inherit]",
+          className
+        )}
+        style={
+          {
+            "--start": "0",
+            "--active": "0",
+          } as React.CSSProperties
+        }
+      >
+        {/* Glow layer (blur behind) */}
+        {glow && blur > 0 && (
           <div
-            className="h-full w-full rounded-[inherit] opacity-[var(--active)] transition-opacity duration-300"
-            style={
-              {
-                "--gradient":
-                  variant === "white"
-                    ? `repeating-conic-gradient(
-                        from calc(var(--start) * 1deg),
-                        #fff 0%,
-                        #fff 5%,
-                        transparent 5%,
-                        transparent 40%,
-                        #fff 50%
-                      )`
-                    : glow
-                    ? `repeating-conic-gradient(
-                        from calc(var(--start) * 1deg),
-                        #5B8DEF 0%,
-                        #F3A151 5%,
-                        #E86D82 10%,
-                        #A35AED 15%,
-                        #5B8DEF 20%
-                      )`
-                    : "none",
-              } as React.CSSProperties
-            }
+            className="absolute -inset-px rounded-[inherit] opacity-[var(--active)] transition-opacity duration-300"
+            style={{
+              background: gradientValue,
+              filter: `blur(${blur}px)`,
+            }}
           />
-        </div>
-      </>
+        )}
+
+        {/* Border layer */}
+        <div
+          className="absolute inset-0 rounded-[inherit] opacity-[var(--active)] transition-opacity duration-300"
+          style={{
+            background: gradientValue,
+            mask: `linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)`,
+            WebkitMask: `linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)`,
+            maskComposite: "exclude",
+            WebkitMaskComposite: "xor",
+            padding: `${borderWidth}px`,
+          }}
+        />
+      </div>
     );
   }
 );
