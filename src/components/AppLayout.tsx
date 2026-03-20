@@ -310,7 +310,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               )}
             </div>
 
-            {/* Dashboard */}
+            {/* Focus */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -322,10 +322,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   }`}
                 >
                   <LayoutDashboard className="h-5 w-5" />
-                  {sidebarExpanded && <span>Dashboard</span>}
+                  {sidebarExpanded && <span>Focus</span>}
                 </Button>
               </TooltipTrigger>
-              {!sidebarExpanded && <TooltipContent side="right">Dashboard</TooltipContent>}
+              {!sidebarExpanded && <TooltipContent side="right">Focus</TooltipContent>}
             </Tooltip>
 
             {/* Tasks */}
