@@ -30,9 +30,6 @@ const Landing = () => {
       {/* How It Works */}
       <HowItWorksSection />
 
-      {/* Waitlist Section */}
-      <WaitlistSection />
-
       {/* CTA Section */}
       <CTASection onGetStarted={() => navigate("/auth")} />
 
@@ -260,37 +257,6 @@ function HowItWorksSection() {
             </ScrollReveal>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-/* ─── Waitlist ─── */
-function WaitlistSection() {
-  return (
-    <section className="py-20 sm:py-28 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto">
-        <ScrollReveal>
-          <p className="text-accent-orange text-xs font-semibold tracking-widest uppercase mb-3 text-center">
-            Early Access
-          </p>
-          <h2 className="font-heading text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-4">
-            Join the waitlist
-          </h2>
-          <p className="text-muted-foreground text-center max-w-md mx-auto mb-10 text-sm sm:text-base">
-            Be among the first to try Orexia. Sign up for early access and help shape the future of focus.
-          </p>
-          <div className="w-full flex justify-center">
-            <iframe
-              src="https://docs.google.com/forms/d/e/1FAIpQLSd4uWnsPt7emmgpYZCH06YUee5t_XouAaw11BQMUHp_aBlUhg/viewform?embedded=true"
-              className="w-full max-w-lg rounded-2xl border border-border bg-card"
-              height="400"
-              title="Waitlist signup form"
-            >
-              Loading…
-            </iframe>
-          </div>
-        </ScrollReveal>
       </div>
     </section>
   );
