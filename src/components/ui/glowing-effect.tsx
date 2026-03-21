@@ -32,10 +32,7 @@ const GlowingEffect = memo(
     const lastPosition = useRef({ x: 0, y: 0 });
     const animationFrameRef = useRef<number>(0);
 
-    const gradientValue =
-      variant === "white"
-        ? `conic-gradient(from calc(var(--start) * 1deg), #fff 0%, transparent ${spread}%, transparent ${100 - spread}%, #fff 100%)`
-        : `conic-gradient(from calc(var(--start) * 1deg), #5B8DEF 0%, #F3A151 ${spread * 0.25}%, #E86D82 ${spread * 0.5}%, #A35AED ${spread * 0.75}%, #5B8DEF ${spread}%, transparent ${spread + 3}%, transparent ${100 - spread - 3}%, #5B8DEF 100%)`;
+    const gradientValue = `conic-gradient(from calc(var(--start) * 1deg), #ffffff 0%, #a0a0a0 ${spread * 0.5}%, #ffffff ${spread}%, transparent ${spread + 3}%, transparent ${100 - spread - 3}%, #ffffff 100%)`;
 
     const handleMove = useCallback(
       (e?: MouseEvent | { x: number; y: number }) => {
