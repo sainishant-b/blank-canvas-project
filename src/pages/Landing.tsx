@@ -30,6 +30,9 @@ const Landing = () => {
       {/* How It Works */}
       <HowItWorksSection />
 
+      {/* Waitlist Section */}
+      <WaitlistSection />
+
       {/* CTA Section */}
       <CTASection onGetStarted={() => navigate("/auth")} />
 
